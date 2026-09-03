@@ -1,0 +1,859 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>보는날씨 광고 신청</title>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: #f4f7fb;
+      color: #111827;
+      font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+        "Noto Sans KR", sans-serif;
+    }
+
+    .wrap {
+      width: min(720px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 34px 0 70px;
+    }
+
+    .brand {
+      font-size: 14px;
+      font-weight: 800;
+      color: #3977d5;
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 30px;
+      letter-spacing: -1.3px;
+    }
+
+    .lead {
+      margin: 10px 0 28px;
+      color: #64748b;
+      line-height: 1.65;
+      font-size: 15px;
+    }
+
+    .card {
+      background: white;
+      border: 1px solid #e7ecf3;
+      border-radius: 20px;
+      padding: 22px;
+      margin-bottom: 16px;
+      box-shadow: 0 8px 30px rgba(30, 55, 90, .05);
+    }
+
+    .card h2 {
+      margin: 0 0 18px;
+      font-size: 18px;
+      letter-spacing: -.5px;
+    }
+
+    .status {
+      display: none;
+      padding: 14px 16px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .status.info {
+      display: block;
+      background: #eef6ff;
+      color: #235ea7;
+    }
+
+    .status.error {
+      display: block;
+      background: #fff1f1;
+      color: #b42318;
+    }
+
+    .status.success {
+      display: block;
+      background: #effaf3;
+      color: #17723b;
+    }
+
+    .field {
+      margin-bottom: 18px;
+    }
+
+    label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 750;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    .count {
+      color: #94a3b8;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    input, select {
+      width: 100%;
+      border: 1px solid #dbe2ea;
+      border-radius: 12px;
+      padding: 13px 14px;
+      font: inherit;
+      font-size: 15px;
+      outline: none;
+      background: white;
+    }
+
+    input:focus, select:focus {
+      border-color: #6da4ed;
+      box-shadow: 0 0 0 3px rgba(79, 137, 215, .10);
+    }
+
+    input[type=file] {
+      padding: 10px;
+      background: #f8fafc;
+    }
+
+    .hint {
+      color: #94a3b8;
+      font-size: 12px;
+      line-height: 1.5;
+      margin-top: 6px;
+    }
+
+    .product {
+      padding: 14px;
+      background: #f8fafc;
+      border-radius: 12px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    /* 보는날씨 앱 광고배너 미리보기 */
+    .preview-area {
+      background: #eef3f8;
+      padding: 18px 12px;
+      border-radius: 16px;
+    }
+
+    .preview-label {
+      color: #64748b;
+      font-size: 12px;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .banner {
+      height: 86px;
+      background: white;
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      padding: 15px;
+      box-shadow: 0 3px 12px rgba(30, 50, 80, .08);
+      overflow: hidden;
+    }
+
+    .banner-image {
+      width: 56px;
+      height: 56px;
+      flex: 0 0 56px;
+      border-radius: 16px;
+      background: #e8f1fe;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 27px;
+    }
+
+    .banner-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .banner-copy {
+      min-width: 0;
+      flex: 1;
+      margin-left: 13px;
+    }
+
+    .banner-title {
+      font-size: 16.5px;
+      font-weight: 800;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      letter-spacing: -.5px;
+    }
+
+    .banner-body {
+      margin-top: 4px;
+      font-size: 13px;
+      color: #6b7280;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .banner-button {
+      margin-left: 10px;
+      padding: 9px 11px;
+      border-radius: 10px;
+      background: #edf4ff;
+      color: #3977d5;
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    button.submit {
+      width: 100%;
+      border: 0;
+      border-radius: 14px;
+      padding: 16px;
+      background: #3977d5;
+      color: white;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    button.submit:disabled {
+      background: #b8c5d6;
+      cursor: not-allowed;
+    }
+
+    .policy {
+      color: #64748b;
+      font-size: 12px;
+      line-height: 1.7;
+      margin-top: 14px;
+    }
+
+    @media (max-width: 520px) {
+      .wrap {
+        width: min(100% - 20px, 720px);
+        padding-top: 22px;
+      }
+
+      h1 { font-size: 26px; }
+
+      .card { padding: 18px; }
+
+      .banner {
+        padding: 15px 12px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+<div class="wrap">
+
+  <div class="brand">보는날씨 · YEOUBI</div>
+  <h1>광고·홍보 신청</h1>
+
+  <p class="lead">
+    결제한 광고 게시권으로 보는날씨에 광고를 신청합니다.<br>
+    신청 후 검토를 거쳐 승인되는 순간부터 광고 기간이 시작됩니다.
+  </p>
+
+  <div id="status" class="status info">
+    광고 게시권을 확인하고 있습니다.
+  </div>
+
+  <div class="card">
+    <h2>구매 상품</h2>
+    <div id="product" class="product">확인 중...</div>
+    <div class="hint" style="margin-top:10px;">
+      광고 종류와 게시기간은 구매한 게시권에 따라 자동 적용되며
+      변경할 수 없습니다.
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>광고 내용</h2>
+
+    <div class="field" id="regionField">
+      <label>광고 게시 지역</label>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <select id="sido">
+          <option value="">시·도 선택</option>
+        </select>
+
+        <select id="sigungu" disabled>
+          <option value="">시·군·구 선택</option>
+        </select>
+      </div>
+
+      <input id="region" type="hidden">
+
+      <div class="hint">
+        현재 위치와 관계없이 실제로 광고하고 싶은 지역을 선택하세요.
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="image">
+        광고 이미지
+        <span class="count">1장</span>
+      </label>
+
+      <input
+        id="image"
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+      >
+
+      <div class="hint">
+        JPG, PNG, WebP · 최대 5MB · 배너에서는 정사각형으로 잘려 표시됩니다.
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="title">
+        큰 문구
+        <span id="titleCount" class="count">0 / 15</span>
+      </label>
+
+      <input
+        id="title"
+        maxlength="15"
+        placeholder="예: 수성못 맛집 오픈"
+      >
+    </div>
+
+    <div class="field">
+      <label for="body">
+        작은 문구
+        <span id="bodyCount" class="count">0 / 20</span>
+      </label>
+
+      <input
+        id="body"
+        maxlength="20"
+        placeholder="예: 이번 주 방문 시 10% 할인"
+      >
+    </div>
+
+    <div class="field">
+      <label for="link">연결 주소</label>
+      <input
+        id="link"
+        type="url"
+        placeholder="https://..."
+      >
+      <div class="hint">
+        광고를 눌렀을 때 이동할 홈페이지, SNS, 지도 등의 주소입니다.
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>앱에서 이렇게 보입니다</h2>
+
+    <div class="preview-area">
+      <div class="preview-label">보는날씨 홈 광고배너 미리보기</div>
+
+      <div class="banner">
+        <div class="banner-image" id="previewImage">📣</div>
+
+        <div class="banner-copy">
+          <div class="banner-title" id="previewTitle">
+            큰 문구가 표시됩니다
+          </div>
+
+          <div class="banner-body" id="previewBody">
+            작은 문구가 표시됩니다
+          </div>
+        </div>
+
+        <div class="banner-button">보기</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>신청자 정보</h2>
+
+    <div class="field">
+      <label for="contactName">신청자 이름</label>
+      <input id="contactName" placeholder="이름 또는 업체명">
+    </div>
+
+    <div class="field">
+      <label for="contactPhone">연락처</label>
+      <input
+        id="contactPhone"
+        type="tel"
+        placeholder="010-0000-0000"
+      >
+    </div>
+  </div>
+
+  <button id="submitButton" class="submit" disabled>
+    광고 신청하기
+  </button>
+
+  <div class="policy">
+    신청 내용은 운영 정책에 따라 검토됩니다.
+    수정이 필요한 경우 게시권은 유지되며 수정 후 다시 신청할 수 있습니다.
+    승인된 광고는 실제 게시되는 순간부터 구매한 기간만큼 노출됩니다.
+  </div>
+
+</div>
+
+<script type="module">
+  import { AD_REGIONS } from "./ad_regions.js";
+  import { initializeApp } from
+    "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+
+  import {
+    getFunctions,
+    httpsCallable
+  } from
+    "https://www.gstatic.com/firebasejs/10.14.1/firebase-functions.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyB42uqx7kLei3dE3uLZBUNQgP_uLAzuFkQ",
+    authDomain: "horizon-4be45.firebaseapp.com",
+    projectId: "horizon-4be45",
+    storageBucket: "horizon-4be45.firebasestorage.app",
+    messagingSenderId: "955109054720",
+    appId: "1:955109054720:web:2b155899d4e14efa377be5",
+    measurementId: "G-HD1CMEL7CN"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const functions = getFunctions(app, "asia-northeast3");
+
+  const getAdApplication =
+    httpsCallable(functions, "getAdApplication");
+
+  const createAdImageUploadUrl =
+    httpsCallable(functions, "createAdImageUploadUrl");
+
+  const completeAdImageUpload =
+    httpsCallable(functions, "completeAdImageUpload");
+
+  const submitAdApplication =
+    httpsCallable(functions, "submitAdApplication");
+
+  const params = new URLSearchParams(location.search);
+  const orderId = params.get("orderId") || "";
+  const applicationToken = params.get("token") || "";
+
+  const status = document.getElementById("status");
+  const product = document.getElementById("product");
+  const submitButton = document.getElementById("submitButton");
+
+  const regionField = document.getElementById("regionField");
+  const sido = document.getElementById("sido");
+  const sigungu = document.getElementById("sigungu");
+  const region = document.getElementById("region");
+  const image = document.getElementById("image");
+  const title = document.getElementById("title");
+  const body = document.getElementById("body");
+  const link = document.getElementById("link");
+  const contactName = document.getElementById("contactName");
+  const contactPhone = document.getElementById("contactPhone");
+
+  const titleCount = document.getElementById("titleCount");
+  const bodyCount = document.getElementById("bodyCount");
+
+  const previewImage = document.getElementById("previewImage");
+  const previewTitle = document.getElementById("previewTitle");
+  const previewBody = document.getElementById("previewBody");
+
+  let currentProductId = "";
+  let currentImageUrl = "";
+  let currentStatus = "";
+
+  const productNames = {
+    "com.yeoubi.bonunnalssi2.ad.region7d": "지역 광고 · 7일",
+    "com.yeoubi.bonunnalssi2.ad.region15d": "지역 광고 · 15일",
+    "com.yeoubi.bonunnalssi2.ad.region30d": "지역 광고 · 30일",
+    "com.yeoubi.bonunnalssi2.ad.national7d": "전국 광고 · 7일",
+    "com.yeoubi.bonunnalssi2.ad.national15d": "전국 광고 · 15일",
+    "com.yeoubi.bonunnalssi2.ad.national30d": "전국 광고 · 30일"
+  };
+
+  function setStatus(type, message) {
+    status.className = `status ${type}`;
+    status.textContent = message;
+  }
+
+  function isNational() {
+    return currentProductId.includes(".national");
+  }
+
+
+  function makeRegionKey(sidoName, sigunguName) {
+    if (!sidoName) return "";
+    if (!sigunguName) return sidoName;
+
+    return `${sidoName}_${sigunguName.replace(/\s+/g, "")}`;
+  }
+
+  function populateSido() {
+    const names = [...new Set(
+      AD_REGIONS.map(item => item.sido)
+    )];
+
+    sido.innerHTML =
+      '<option value="">시·도 선택</option>';
+
+    for (const name of names) {
+      sido.add(new Option(name, name));
+    }
+
+    // 세종은 시군구가 없으므로 별도 보장
+    if (!names.includes("세종")) {
+      sido.add(new Option("세종", "세종"));
+    }
+  }
+
+  function populateSigungu(sidoName) {
+    sigungu.innerHTML =
+      '<option value="">시·군·구 선택</option>';
+
+    region.value = "";
+
+    if (!sidoName) {
+      sigungu.disabled = true;
+      return;
+    }
+
+    if (sidoName === "세종") {
+      sigungu.innerHTML =
+        '<option value="">세종 전체</option>';
+
+      sigungu.disabled = true;
+      region.value = "세종";
+      return;
+    }
+
+    const rows = AD_REGIONS.filter(
+      item => item.sido === sidoName
+    );
+
+    for (const item of rows) {
+      sigungu.add(
+        new Option(item.sigungu, item.sigungu)
+      );
+    }
+
+    sigungu.disabled = false;
+  }
+
+  function restoreRegion(regionKey) {
+    if (!regionKey || regionKey === "_national") return;
+
+    if (regionKey === "세종") {
+      sido.value = "세종";
+      populateSigungu("세종");
+      return;
+    }
+
+    for (const item of AD_REGIONS) {
+      if (
+        makeRegionKey(item.sido, item.sigungu)
+        === regionKey
+      ) {
+        sido.value = item.sido;
+        populateSigungu(item.sido);
+        sigungu.value = item.sigungu;
+        region.value = regionKey;
+        return;
+      }
+    }
+  }
+
+  sido.addEventListener("change", () => {
+    populateSigungu(sido.value);
+  });
+
+  sigungu.addEventListener("change", () => {
+    region.value = makeRegionKey(
+      sido.value,
+      sigungu.value
+    );
+  });
+
+  function refreshPreview() {
+    titleCount.textContent =
+      `${Array.from(title.value).length} / 15`;
+
+    bodyCount.textContent =
+      `${Array.from(body.value).length} / 20`;
+
+    previewTitle.textContent =
+      title.value.trim() || "큰 문구가 표시됩니다";
+
+    previewBody.textContent =
+      body.value.trim() || "작은 문구가 표시됩니다";
+  }
+
+  title.addEventListener("input", refreshPreview);
+  body.addEventListener("input", refreshPreview);
+
+  image.addEventListener("change", () => {
+    const file = image.files?.[0];
+
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      image.value = "";
+      alert("이미지는 5MB 이하여야 합니다.");
+      return;
+    }
+
+    const localUrl = URL.createObjectURL(file);
+
+    previewImage.innerHTML =
+      `<img src="${localUrl}" alt="광고 이미지 미리보기">`;
+  });
+
+  async function loadApplication() {
+    if (!orderId || !applicationToken) {
+      setStatus(
+        "error",
+        "유효한 광고 신청 링크가 아닙니다. 보는날씨 앱에서 다시 열어주세요."
+      );
+      return;
+    }
+
+    try {
+      const result = await getAdApplication({
+        orderId,
+        applicationToken
+      });
+
+      const data = result.data;
+
+      currentProductId = data.productId || "";
+      currentStatus = data.reviewStatus || "";
+      currentImageUrl = data.imageUrl || "";
+
+      product.textContent =
+        productNames[currentProductId] || currentProductId;
+
+      if (isNational()) {
+        // 전국 광고 결제자는 전국으로 자동 고정
+        regionField.style.display = "none";
+        region.value = "_national";
+      } else {
+        // 지역 광고 결제자는 광고할 지역을 직접 선택
+        regionField.style.display = "block";
+        restoreRegion(data.regionKey || "");
+      }
+
+      title.value = data.title || "";
+      body.value = data.body || "";
+      link.value = data.linkUrl || "";
+      contactName.value = data.contactName || "";
+      contactPhone.value = data.contactPhone || "";
+
+      if (currentImageUrl) {
+        previewImage.innerHTML =
+          `<img src="${currentImageUrl}" alt="광고 이미지">`;
+      }
+
+      refreshPreview();
+
+      if (currentStatus === "pending") {
+        setStatus(
+          "info",
+          "현재 광고를 검토하고 있습니다. 검토가 끝나면 수정 또는 승인 상태가 반영됩니다."
+        );
+        submitButton.disabled = true;
+        return;
+      }
+
+      if (currentStatus === "revision_requested") {
+        setStatus(
+          "error",
+          `수정 요청: ${data.revisionReason || "광고 내용을 수정해주세요."}`
+        );
+      } else if (currentStatus === "rejected") {
+        setStatus(
+          "error",
+          `거절 사유: ${data.rejectReason || "내용을 수정해 다시 신청할 수 있습니다."}`
+        );
+      } else {
+        setStatus(
+          "success",
+          "광고 게시권 확인 완료. 내용을 작성해 신청해주세요."
+        );
+      }
+
+      submitButton.disabled = false;
+
+    } catch (error) {
+      console.error(error);
+
+      setStatus(
+        "error",
+        error?.message ||
+          "광고 게시권을 확인하지 못했습니다."
+      );
+    }
+  }
+
+  async function uploadImageIfNeeded() {
+    const file = image.files?.[0];
+
+    if (!file) {
+      if (currentImageUrl) return currentImageUrl;
+
+      throw new Error("광고 이미지 1장을 선택해주세요.");
+    }
+
+    const allowedTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/webp"
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      throw new Error("JPG, PNG, WebP 이미지만 사용할 수 있습니다.");
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      throw new Error("이미지는 5MB 이하여야 합니다.");
+    }
+
+    const uploadResult = await createAdImageUploadUrl({
+      orderId,
+      applicationToken,
+      contentType: file.type
+    });
+
+    const uploadUrl = uploadResult.data.uploadUrl;
+    const objectPath = uploadResult.data.objectPath;
+
+    const response = await fetch(uploadUrl, {
+      method: "PUT",
+      headers: {
+        "Content-Type": file.type
+      },
+      body: file
+    });
+
+    if (!response.ok) {
+      throw new Error(
+        `이미지 업로드에 실패했습니다. (${response.status})`
+      );
+    }
+
+    const completeResult = await completeAdImageUpload({
+      orderId,
+      applicationToken,
+      objectPath
+    });
+
+    currentImageUrl = completeResult.data.imageUrl;
+
+    return currentImageUrl;
+  }
+
+  submitButton.addEventListener("click", async () => {
+    if (submitButton.disabled) return;
+
+    const titleText = title.value.trim();
+    const bodyText = body.value.trim();
+
+    if (!isNational() && !region.value) {
+      alert("게시 지역을 선택해주세요.");
+      return;
+    }
+
+    if (!titleText) {
+      alert("큰 문구를 입력해주세요.");
+      return;
+    }
+
+    if (Array.from(titleText).length > 15) {
+      alert("큰 문구는 15자 이하로 입력해주세요.");
+      return;
+    }
+
+    if (Array.from(bodyText).length > 20) {
+      alert("작은 문구는 20자 이하로 입력해주세요.");
+      return;
+    }
+
+    if (!contactName.value.trim() ||
+        !contactPhone.value.trim()) {
+      alert("신청자 이름과 연락처를 입력해주세요.");
+      return;
+    }
+
+    submitButton.disabled = true;
+    submitButton.textContent = "신청 중...";
+
+    try {
+      setStatus("info", "이미지와 신청 내용을 등록하고 있습니다.");
+
+      const imageUrl = await uploadImageIfNeeded();
+
+      await submitAdApplication({
+        orderId,
+        applicationToken,
+        regionKey: isNational() ? "_national" : region.value,
+        imageUrl,
+        title: titleText,
+        body: bodyText,
+        linkUrl: link.value.trim(),
+        contactName: contactName.value.trim(),
+        contactPhone: contactPhone.value.trim()
+      });
+
+      currentStatus = "pending";
+
+      setStatus(
+        "success",
+        "광고 신청이 완료되었습니다. 검토 후 승인되면 그 순간부터 광고 기간이 시작됩니다."
+      );
+
+      submitButton.textContent = "심사 중";
+      submitButton.disabled = true;
+
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+      });
+
+    } catch (error) {
+      console.error(error);
+
+      setStatus(
+        "error",
+        error?.message || "광고 신청 중 오류가 발생했습니다."
+      );
+
+      submitButton.textContent = "광고 신청하기";
+      submitButton.disabled = false;
+    }
+  });
+
+  populateSido();
+  refreshPreview();
+  loadApplication();
+</script>
+
+</body>
+</html>
