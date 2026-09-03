@@ -736,11 +736,15 @@
       throw new Error("이미지는 5MB 이하여야 합니다.");
     }
 
+    setStatus("info", "1/4 이미지 업로드 권한을 요청하고 있습니다.");
+
     const uploadResult = await createAdImageUploadUrl({
       orderId,
       applicationToken,
       contentType: file.type
     });
+
+    setStatus("info", "2/4 이미지 파일을 업로드하고 있습니다.");
 
     const uploadUrl = uploadResult.data.uploadUrl;
     const objectPath = uploadResult.data.objectPath;
@@ -758,6 +762,8 @@
         `이미지 업로드에 실패했습니다. (${response.status})`
       );
     }
+
+    setStatus("info", "3/4 이미지 업로드를 확인하고 있습니다.");
 
     const completeResult = await completeAdImageUpload({
       orderId,
@@ -777,6 +783,7 @@
     const bodyText = body.value.trim();
 
     if (!isNational() && !region.value) {
+      setStatus("error", "게시 지역을 선택해주세요.");
       alert("게시 지역을 선택해주세요.");
       return;
     }
@@ -809,6 +816,8 @@
       setStatus("info", "이미지와 신청 내용을 등록하고 있습니다.");
 
       const imageUrl = await uploadImageIfNeeded();
+
+      setStatus("info", "4/4 광고 신청서를 제출하고 있습니다.");
 
       await submitAdApplication({
         orderId,
