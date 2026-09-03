@@ -703,12 +703,15 @@
       submitButton.disabled = false;
 
     } catch (error) {
-      console.error(error);
+      console.error("[AD WEB] loadApplication failed", error);
+
+      const code = error?.code || "NO_CODE";
+      const name = error?.name || "NO_NAME";
+      const message = error?.message || String(error);
 
       setStatus(
         "error",
-        error?.message ||
-          "광고 게시권을 확인하지 못했습니다."
+        `불러오기 실패 | code=${code} | name=${name} | message=${message}`
       );
     }
   }
