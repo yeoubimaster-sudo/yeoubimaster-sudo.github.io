@@ -1,0 +1,728 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>보는날씨 광고 관리</title>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+        "Noto Sans KR", sans-serif;
+      background: #f4f7fb;
+      color: #172033;
+    }
+
+    header {
+      background: white;
+      border-bottom: 1px solid #e5eaf0;
+      padding: 18px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .header-inner {
+      max-width: 1100px;
+      margin: auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
+    h1 {
+      font-size: 21px;
+      margin: 0;
+    }
+
+    .sub {
+      color: #748094;
+      font-size: 13px;
+      margin-top: 4px;
+    }
+
+    main {
+      max-width: 1100px;
+      margin: 28px auto;
+      padding: 0 18px 60px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 11px 15px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: .5;
+      cursor: default;
+    }
+
+    .primary {
+      background: #172033;
+      color: white;
+    }
+
+    .approve {
+      background: #16874e;
+      color: white;
+    }
+
+    .revision {
+      background: #f0a400;
+      color: white;
+    }
+
+    .reject {
+      background: #d94141;
+      color: white;
+    }
+
+    .ghost {
+      background: #edf1f5;
+      color: #344054;
+    }
+
+    #loginBox {
+      max-width: 520px;
+      margin: 100px auto;
+      background: white;
+      padding: 38px;
+      border-radius: 18px;
+      text-align: center;
+      box-shadow: 0 10px 35px rgba(0,0,0,.06);
+    }
+
+    #loginBox h2 {
+      margin-top: 0;
+    }
+
+    #adminArea {
+      display: none;
+    }
+
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .filters {
+      display: flex;
+      gap: 7px;
+      flex-wrap: wrap;
+    }
+
+    .filter.active {
+      background: #172033;
+      color: white;
+    }
+
+    #statusText {
+      font-size: 13px;
+      color: #748094;
+    }
+
+    .card {
+      background: white;
+      border-radius: 18px;
+      padding: 20px;
+      margin-bottom: 18px;
+      box-shadow: 0 5px 20px rgba(0,0,0,.045);
+    }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 15px;
+      margin-bottom: 17px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 6px 9px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 800;
+      background: #eef2f6;
+    }
+
+    .pending { background:#fff0c9; }
+    .active { background:#dff5e8; }
+    .revision_requested { background:#e8e3ff; }
+    .rejected { background:#ffe1e1; }
+    .available { background:#e7eef7; }
+    .expired { background:#ececec; }
+
+    .content-grid {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 22px;
+    }
+
+    .creative {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      border-radius: 14px;
+      object-fit: cover;
+      background: #eef2f6;
+    }
+
+    .info {
+      display: grid;
+      grid-template-columns: 130px 1fr;
+      gap: 9px 12px;
+      font-size: 14px;
+    }
+
+    .label {
+      color: #7b8494;
+    }
+
+    .banner-preview {
+      margin-top: 18px;
+      border: 1px solid #e5e9ef;
+      border-radius: 14px;
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: white;
+    }
+
+    .banner-preview img {
+      width: 56px;
+      height: 56px;
+      object-fit: cover;
+      border-radius: 12px;
+    }
+
+    .banner-title {
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .banner-body {
+      font-size: 13px;
+      color: #697386;
+    }
+
+    .actions {
+      margin-top: 18px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .empty {
+      text-align: center;
+      padding: 70px 20px;
+      color: #7b8494;
+    }
+
+    .error {
+      background: #fff0f0;
+      color: #b42318;
+      padding: 12px;
+      border-radius: 10px;
+      margin-bottom: 16px;
+    }
+
+    @media(max-width:700px) {
+      .content-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .creative {
+        max-width: 260px;
+      }
+
+      .info {
+        grid-template-columns: 105px 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <div class="header-inner">
+    <div>
+      <h1>보는날씨 광고 관리</h1>
+      <div class="sub">광고·홍보 신청 심사 및 게시 관리</div>
+    </div>
+
+    <div id="accountArea" style="display:none;">
+      <span id="adminEmail" class="sub"></span>
+      <button id="logoutButton" class="ghost">로그아웃</button>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <section id="loginBox">
+    <h2>관리자 로그인</h2>
+    <p class="sub">
+      등록된 보는날씨 관리자 Google 계정만 접속할 수 있습니다.
+    </p>
+
+    <button id="loginButton" class="primary">
+      Google 계정으로 로그인
+    </button>
+  </section>
+
+  <section id="adminArea">
+
+    <div id="errorBox"></div>
+
+    <div class="toolbar">
+      <div class="filters">
+        <button class="filter active" data-status="all">전체</button>
+        <button class="filter" data-status="pending">심사대기</button>
+        <button class="filter" data-status="revision_requested">수정요청</button>
+        <button class="filter" data-status="active">게시중</button>
+        <button class="filter" data-status="rejected">거절</button>
+      </div>
+
+      <div>
+        <span id="statusText"></span>
+        <button id="refreshButton" class="ghost">새로고침</button>
+      </div>
+    </div>
+
+    <div id="list"></div>
+
+  </section>
+
+</main>
+
+<script type="module">
+  import {
+    initializeApp
+  } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+
+  import {
+    getAuth,
+    GoogleAuthProvider,
+    signInWithPopup,
+    signOut,
+    onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+
+  import {
+    getFunctions,
+    httpsCallable
+  } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-functions.js";
+
+  const ADMIN_EMAIL = "yeoubi.master@gmail.com";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyB42uqx7kLei3dE3uLZBUNQgP_uLAzuFkQ",
+    authDomain: "horizon-4be45.firebaseapp.com",
+    projectId: "horizon-4be45",
+    storageBucket: "horizon-4be45.firebasestorage.app",
+    messagingSenderId: "955109054720",
+    appId: "1:955109054720:web:2b155899d4e14efa377be5",
+    measurementId: "G-HD1CMEL7CN"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const functions = getFunctions(app, "asia-northeast3");
+
+  const listApplications =
+    httpsCallable(functions, "listAdApplications");
+
+  const approveAd =
+    httpsCallable(functions, "approveAd");
+
+  const requestRevision =
+    httpsCallable(functions, "requestAdRevision");
+
+  const rejectAd =
+    httpsCallable(functions, "rejectAd");
+
+  const loginBox = document.getElementById("loginBox");
+  const adminArea = document.getElementById("adminArea");
+  const accountArea = document.getElementById("accountArea");
+  const adminEmail = document.getElementById("adminEmail");
+  const list = document.getElementById("list");
+  const errorBox = document.getElementById("errorBox");
+  const statusText = document.getElementById("statusText");
+
+  let applications = [];
+  let currentFilter = "all";
+
+  const productNames = {
+    "com.yeoubi.bonunnalssi2.ad.region7d": "지역 광고 · 7일",
+    "com.yeoubi.bonunnalssi2.ad.region15d": "지역 광고 · 15일",
+    "com.yeoubi.bonunnalssi2.ad.region30d": "지역 광고 · 30일",
+    "com.yeoubi.bonunnalssi2.ad.national7d": "전국 광고 · 7일",
+    "com.yeoubi.bonunnalssi2.ad.national15d": "전국 광고 · 15일",
+    "com.yeoubi.bonunnalssi2.ad.national30d": "전국 광고 · 30일"
+  };
+
+  const statusNames = {
+    available: "신청 전",
+    pending: "심사대기",
+    revision_requested: "수정요청",
+    rejected: "거절",
+    active: "게시중",
+    expired: "게시종료"
+  };
+
+  function esc(value) {
+    return String(value ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  function formatDate(ms) {
+    if (!ms) return "-";
+
+    return new Intl.DateTimeFormat("ko-KR", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit"
+    }).format(new Date(ms));
+  }
+
+  function regionName(key) {
+    if (!key) return "-";
+    if (key === "_national") return "전국";
+
+    const index = key.indexOf("_");
+
+    if (index < 0) return key;
+
+    return (
+      key.slice(0, index) +
+      " " +
+      key.slice(index + 1)
+    );
+  }
+
+  function showError(message) {
+    errorBox.innerHTML =
+      `<div class="error">${esc(message)}</div>`;
+  }
+
+  function clearError() {
+    errorBox.innerHTML = "";
+  }
+
+  async function loadApplications() {
+    clearError();
+    statusText.textContent = "불러오는 중...";
+
+    try {
+      const result = await listApplications({});
+      applications = result.data.applications || [];
+
+      statusText.textContent =
+        `총 ${applications.length}건`;
+
+      render();
+    } catch (error) {
+      console.error(error);
+
+      showError(
+        error.message ||
+        "광고 신청 목록을 불러오지 못했습니다."
+      );
+
+      statusText.textContent = "";
+    }
+  }
+
+  function render() {
+    const rows = applications.filter(item =>
+      currentFilter === "all" ||
+      item.reviewStatus === currentFilter
+    );
+
+    if (!rows.length) {
+      list.innerHTML =
+        '<div class="empty">해당 광고 신청이 없습니다.</div>';
+      return;
+    }
+
+    list.innerHTML = rows.map(item => {
+      const status =
+        statusNames[item.reviewStatus] ||
+        item.reviewStatus ||
+        "-";
+
+      const product =
+        productNames[item.productId] ||
+        item.productId ||
+        "-";
+
+      const actions =
+        item.reviewStatus === "pending"
+          ? `
+            <div class="actions">
+              <button class="approve"
+                data-action="approve"
+                data-id="${esc(item.orderId)}">
+                승인 · 바로 게시
+              </button>
+
+              <button class="revision"
+                data-action="revision"
+                data-id="${esc(item.orderId)}">
+                수정요청
+              </button>
+
+              <button class="reject"
+                data-action="reject"
+                data-id="${esc(item.orderId)}">
+                거절
+              </button>
+            </div>
+          `
+          : "";
+
+      return `
+        <article class="card">
+
+          <div class="card-top">
+            <div>
+              <span class="badge ${esc(item.reviewStatus)}">
+                ${esc(status)}
+              </span>
+
+              <strong style="margin-left:8px;">
+                ${esc(product)}
+              </strong>
+            </div>
+
+            <div class="sub">
+              신청 ${formatDate(item.submittedAt)}
+            </div>
+          </div>
+
+          <div class="content-grid">
+
+            <div>
+              ${
+                item.imageUrl
+                  ? `<img class="creative"
+                       src="${esc(item.imageUrl)}"
+                       alt="광고 이미지">`
+                  : `<div class="creative"></div>`
+              }
+            </div>
+
+            <div>
+
+              <div class="info">
+                <div class="label">광고지역</div>
+                <div>${esc(regionName(item.regionKey))}</div>
+
+                <div class="label">큰 문구</div>
+                <div>${esc(item.title)}</div>
+
+                <div class="label">작은 문구</div>
+                <div>${esc(item.body || "-")}</div>
+
+                <div class="label">연결주소</div>
+                <div>${esc(item.linkUrl || "-")}</div>
+
+                <div class="label">신청자</div>
+                <div>${esc(item.contactName)}</div>
+
+                <div class="label">연락처</div>
+                <div>${esc(item.contactPhone)}</div>
+
+                <div class="label">게시 시작</div>
+                <div>${formatDate(item.startAt)}</div>
+
+                <div class="label">게시 종료</div>
+                <div>${formatDate(item.endAt)}</div>
+              </div>
+
+              <div class="banner-preview">
+                ${
+                  item.imageUrl
+                    ? `<img src="${esc(item.imageUrl)}">`
+                    : ""
+                }
+
+                <div>
+                  <div class="banner-title">
+                    ${esc(item.title || "큰 문구")}
+                  </div>
+
+                  <div class="banner-body">
+                    ${esc(item.body || "작은 문구")}
+                  </div>
+                </div>
+              </div>
+
+              ${actions}
+
+            </div>
+          </div>
+
+        </article>
+      `;
+    }).join("");
+  }
+
+  async function handleAction(action, orderId) {
+    clearError();
+
+    try {
+      if (action === "approve") {
+        const ok = confirm(
+          "승인 즉시 광고가 게시되고 구매한 기간이 시작됩니다.\n\n정말 승인하시겠습니까?"
+        );
+
+        if (!ok) return;
+
+        await approveAd({ orderId });
+      }
+
+      if (action === "revision") {
+        const reason = prompt(
+          "광고주에게 전달할 수정 내용을 입력하세요."
+        );
+
+        if (!reason) return;
+
+        await requestRevision({
+          orderId,
+          reason
+        });
+      }
+
+      if (action === "reject") {
+        const reason = prompt(
+          "거절 사유를 입력하세요.\n게시권은 다시 사용할 수 있습니다."
+        );
+
+        if (!reason) return;
+
+        const ok = confirm(
+          "이 신청을 거절하시겠습니까?\n게시권은 소모되지 않습니다."
+        );
+
+        if (!ok) return;
+
+        await rejectAd({
+          orderId,
+          reason
+        });
+      }
+
+      await loadApplications();
+
+    } catch (error) {
+      console.error(error);
+
+      showError(
+        error.message ||
+        "처리 중 오류가 발생했습니다."
+      );
+    }
+  }
+
+  list.addEventListener("click", event => {
+    const button =
+      event.target.closest("button[data-action]");
+
+    if (!button) return;
+
+    handleAction(
+      button.dataset.action,
+      button.dataset.id
+    );
+  });
+
+  document.querySelectorAll(".filter")
+    .forEach(button => {
+      button.addEventListener("click", () => {
+        document.querySelectorAll(".filter")
+          .forEach(x => x.classList.remove("active"));
+
+        button.classList.add("active");
+        currentFilter = button.dataset.status;
+        render();
+      });
+    });
+
+  document.getElementById("refreshButton")
+    .addEventListener("click", loadApplications);
+
+  document.getElementById("loginButton")
+    .addEventListener("click", async () => {
+      clearError();
+
+      try {
+        const provider = new GoogleAuthProvider();
+        provider.setCustomParameters({
+          prompt: "select_account"
+        });
+
+        await signInWithPopup(auth, provider);
+      } catch (error) {
+        console.error(error);
+        showError(error.message || "로그인에 실패했습니다.");
+      }
+    });
+
+  document.getElementById("logoutButton")
+    .addEventListener("click", () => signOut(auth));
+
+  onAuthStateChanged(auth, async user => {
+
+    if (!user) {
+      loginBox.style.display = "block";
+      adminArea.style.display = "none";
+      accountArea.style.display = "none";
+      return;
+    }
+
+    if (
+      !user.emailVerified ||
+      user.email?.toLowerCase() !== ADMIN_EMAIL
+    ) {
+      await signOut(auth);
+
+      alert(
+        "등록된 보는날씨 관리자 계정만 접속할 수 있습니다."
+      );
+
+      return;
+    }
+
+    loginBox.style.display = "none";
+    adminArea.style.display = "block";
+    accountArea.style.display = "block";
+
+    adminEmail.textContent = user.email;
+
+    await loadApplications();
+  });
+</script>
+
+</body>
+</html>
