@@ -360,6 +360,23 @@
         광고를 눌렀을 때 이동할 홈페이지, SNS, 지도 등의 주소입니다.
       </div>
     </div>
+
+    <div class="field">
+      <label for="cta">버튼 문구</label>
+
+      <select id="cta">
+        <option value="보기">보기 — 홈페이지·소개 페이지 안내</option>
+        <option value="예약">예약 — 펜션·미용실·병원 등 예약</option>
+        <option value="주문">주문 — 식당·카페·배달 주문</option>
+        <option value="문의">문의 — 상담·견적 문의</option>
+        <option value="구매">구매 — 쇼핑몰·상품 판매</option>
+        <option value="신청">신청 — 모집·접수·이벤트 참여</option>
+      </select>
+
+      <div class="hint">
+        배너 오른쪽 파란 버튼에 표시됩니다. 업종에 맞게 골라주세요.
+      </div>
+    </div>
   </div>
 
   <div class="card">
@@ -381,7 +398,7 @@
           </div>
         </div>
 
-        <div class="banner-button">보기</div>
+        <div class="banner-button" id="previewCta">보기</div>
       </div>
     </div>
   </div>
@@ -468,12 +485,14 @@
   const title = document.getElementById("title");
   const body = document.getElementById("body");
   const link = document.getElementById("link");
+  const cta = document.getElementById("cta");
   const contactName = document.getElementById("contactName");
   const contactPhone = document.getElementById("contactPhone");
 
   const titleCount = document.getElementById("titleCount");
   const bodyCount = document.getElementById("bodyCount");
 
+  const previewCta = document.getElementById("previewCta");
   const previewImage = document.getElementById("previewImage");
   const previewTitle = document.getElementById("previewTitle");
   const previewBody = document.getElementById("previewBody");
@@ -605,10 +624,13 @@
 
     previewBody.textContent =
       body.value.trim() || "작은 문구가 표시됩니다";
+
+    previewCta.textContent = cta.value || "보기";
   }
 
   title.addEventListener("input", refreshPreview);
   body.addEventListener("input", refreshPreview);
+  cta.addEventListener("change", refreshPreview);
 
   image.addEventListener("change", () => {
     const file = image.files?.[0];
@@ -664,6 +686,7 @@
       title.value = data.title || "";
       body.value = data.body || "";
       link.value = data.linkUrl || "";
+      cta.value = data.ctaLabel || "보기";
       contactName.value = data.contactName || "";
       contactPhone.value = data.contactPhone || "";
 
@@ -830,6 +853,7 @@
         title: titleText,
         body: bodyText,
         linkUrl: link.value.trim(),
+        ctaLabel: cta.value,
         contactName: contactName.value.trim(),
         contactPhone: contactPhone.value.trim()
       });
