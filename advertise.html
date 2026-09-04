@@ -469,6 +469,10 @@
   const submitAdApplication =
     httpsCallable(functions, "submitAdApplication");
 
+  // 고른 시·도 안에서 지역별로 광고 자리가 몇 개 남았는지 물어본다.
+  const getAdRegionAvailability =
+    httpsCallable(functions, "getAdRegionAvailability");
+
   const params = new URLSearchParams(location.search);
   const orderId = params.get("orderId") || "";
   const applicationToken = params.get("token") || "";
@@ -578,6 +582,135 @@
     sigungu.disabled = false;
   }
 
+  // ── 지역별 남은 광고 자리 ──────────────────────────────────
+  //
+  // 한 지역에는 광고를 3개까지만 싣는다. (전국은 2개)
+  // 이미 다 찬 지역은 아예 고르지 못하게 막는다.
+  //
+  // 서버가 돌려주는 값의 모양:
+  //   {
+  //     used: { "대구_수성구": 3, "대구_동구": 2 },
+  //     maxPerRegion: 3,
+  //     national: { used: 2, max: 2, full: true }
+  //   }
+  //
+  // used 목록에 없는 지역은 0개 쓴 것으로 본다.
+  //
+  // ⚠️ 이 화면은 광고주 브라우저에서 돌기 때문에 믿을 수 없다.
+  //    여기서 막는 것은 "잘못 신청해서 헛돈 쓰는 일"을 줄이기
+  //    위한 것이고, 진짜 차단은 서버의 submitAdApplication 과
+  //    approveAd 가 한다.
+  let availability = null;     // 아직 못 불러왔으면 null
+  let availabilitySido = "";   // 지금 담겨 있는 시·도
+  let availabilityRequestId = 0;
+
+  function usedCount(regionKey) {
+    if (!availability || !availability.used) return null;
+
+    const n = availability.used[regionKey];
+    return typeof n === "number" ? n : 0;
+  }
+
+  function maxPerRegion() {
+    return (availability && availability.maxPerRegion) || 3;
+  }
+
+  function isRegionFull(regionKey) {
+    const n = usedCount(regionKey);
+
+    // 모르는 상태면 막지 않는다.
+    // 조회에 실패했다고 신청 자체를 못 하게 하면 안 된다.
+    if (n === null) return false;
+
+    return n >= maxPerRegion();
+  }
+
+  async function loadAvailability(sidoName) {
+    const myId = ++availabilityRequestId;
+
+    try {
+      const result = await getAdRegionAvailability({
+        orderId,
+        applicationToken,
+        sido: sidoName || ""
+      });
+
+      // 그 사이에 시·도를 또 바꿨으면 이 결과는 버린다.
+      if (myId !== availabilityRequestId) return;
+
+      availability = result.data || null;
+      availabilitySido = sidoName || "";
+    } catch (error) {
+      // 함수가 아직 서버에 없거나 인터넷이 끊겨도 신청은 막지 않는다.
+      // 자리 표시만 안 뜰 뿐이고, 제출할 때 서버가 다시 확인한다.
+      console.error("잔여 자리 조회 실패", error);
+
+      if (myId !== availabilityRequestId) return;
+
+      availability = null;
+      availabilitySido = "";
+    }
+  }
+
+  function applyAvailabilityLabels() {
+    if (sido.value === "세종") {
+      const n = usedCount("세종");
+
+      sigungu.innerHTML = n === null
+        ? '<option value="">세종 전체</option>'
+        : (n >= maxPerRegion()
+          ? '<option value="">세종 전체 · 마감</option>'
+          : `<option value="">세종 전체 · ${maxPerRegion() - n}자리 남음</option>`);
+
+      return;
+    }
+
+    const keep = sigungu.value;
+
+    for (const option of sigungu.options) {
+      if (!option.value) continue;
+
+      const n = usedCount(
+        makeRegionKey(sido.value, option.value)
+      );
+
+      if (n === null) {
+        option.textContent = option.value;
+        option.disabled = false;
+        continue;
+      }
+
+      const left = Math.max(0, maxPerRegion() - n);
+
+      option.textContent = left === 0
+        ? `${option.value} · 마감`
+        : `${option.value} · ${left}자리 남음`;
+
+      option.disabled = left === 0;
+    }
+
+    // 이미 골라둔 곳이 그 사이에 마감됐으면 선택을 풀어준다.
+    if (keep && isRegionFull(makeRegionKey(sido.value, keep))) {
+      sigungu.value = "";
+      region.value = "";
+
+      setStatus(
+        "error",
+        "이전에 선택하신 지역은 광고 자리가 모두 찼습니다. 다른 지역을 선택해주세요."
+      );
+    }
+  }
+
+  // 시·도를 고른 뒤 남은 자리를 불러와 목록에 표시한다.
+  async function refreshAvailability(sidoName) {
+    await loadAvailability(sidoName);
+
+    // 불러오는 사이에 시·도가 바뀌었으면 그리지 않는다.
+    if (sido.value !== availabilitySido) return;
+
+    applyAvailabilityLabels();
+  }
+
   function restoreRegion(regionKey) {
     if (!regionKey || regionKey === "_national") return;
 
@@ -602,7 +735,16 @@
   }
 
   sido.addEventListener("change", () => {
+    // 앞 시·도의 자리 정보를 그대로 두면 엉뚱한 지역에
+    // 「마감」이 붙는다. 반드시 지우고 시작한다.
+    availability = null;
+    availabilitySido = "";
+
     populateSigungu(sido.value);
+
+    if (!sido.value) return;
+
+    refreshAvailability(sido.value);
   });
 
   sigungu.addEventListener("change", () => {
@@ -677,10 +819,32 @@
         // 전국 광고 결제자는 전국으로 자동 고정
         regionField.style.display = "none";
         region.value = "_national";
+
+        // 전국 자리(2개)가 다 찼는지 미리 알려준다.
+        // 제출 버튼을 눌러서야 거절당하는 것보다 낫다.
+        loadAvailability("").then(() => {
+          if (!availability || !availability.national) return;
+          if (!availability.national.full) return;
+
+          // 아래에서 「심사 중」 같은 안내를 이미 띄웠으면
+          // 그것을 덮지 않는다.
+          if (submitButton.disabled) return;
+
+          setStatus(
+            "error",
+            "현재 전국 광고 자리가 모두 찼습니다. 기존 광고가 끝난 뒤 신청할 수 있습니다. 문의: yeoubi.master@gmail.com"
+          );
+        });
       } else {
         // 지역 광고 결제자는 광고할 지역을 직접 선택
         regionField.style.display = "block";
         restoreRegion(data.regionKey || "");
+
+        // 수정 요청을 받아 다시 연 경우, 예전에 고른 지역이
+        // 그 사이에 찼을 수 있다. 그래서 여기서도 한 번 본다.
+        if (sido.value) {
+          refreshAvailability(sido.value);
+        }
       }
 
       title.value = data.title || "";
@@ -811,6 +975,17 @@
     if (!isNational() && !region.value) {
       setStatus("error", "게시 지역을 선택해주세요.");
       alert("게시 지역을 선택해주세요.");
+      return;
+    }
+
+    // 목록에서 막아뒀지만, 세종처럼 목록이 없는 곳도 있고
+    // 신청서를 오래 열어둔 사이에 찼을 수도 있다.
+    if (!isNational() && isRegionFull(region.value)) {
+      setStatus(
+        "error",
+        "선택하신 지역은 광고 자리가 모두 찼습니다. 다른 지역을 선택해주세요."
+      );
+      alert("선택하신 지역은 광고 자리가 모두 찼습니다.\n다른 지역을 선택해주세요.");
       return;
     }
 
