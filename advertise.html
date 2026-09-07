@@ -131,6 +131,13 @@
       margin-top: 6px;
     }
 
+    /* 라벨 옆에 붙는 「(선택)」 표시. 안 써도 되는 칸이라는 뜻. */
+    .optional {
+      color: #94a3b8;
+      font-size: 12px;
+      font-weight: 400;
+    }
+
     .product {
       padding: 14px;
       background: #f8fafc;
@@ -350,14 +357,29 @@
     </div>
 
     <div class="field">
-      <label for="link">연결 주소</label>
+      <label for="link">연결 주소 <span class="optional">(선택)</span></label>
+      <!--
+        type 을 url 이 아니라 text 로 둔다.
+        이 페이지에는 <form> 이 없어서 type="url" 은 아무것도 검사하지
+        못하면서, 광고주가 "daum.com" 이라고 쓰면 마지막 제출 순간에
+        서버가 거절해 버린다. 돈은 이미 낸 뒤다.
+        그래서 여기서 https:// 를 자동으로 붙여준다. (normalizeLinkUrl)
+
+        type="text" 로 바꿨으니 자동 대문자 변환을 직접 꺼야 한다.
+        (type="url" 일 때는 브라우저가 알아서 꺼준다)
+      -->
       <input
         id="link"
-        type="url"
-        placeholder="https://..."
+        type="text"
+        inputmode="url"
+        autocapitalize="off"
+        autocorrect="off"
+        spellcheck="false"
+        placeholder="예: daum.com"
       >
       <div class="hint">
         광고를 눌렀을 때 이동할 홈페이지, SNS, 지도 등의 주소입니다.
+        <b>daum.com</b> 처럼 주소만 쓰셔도 됩니다. 없으면 비워두세요.
       </div>
     </div>
 
@@ -518,6 +540,68 @@
     status.className = `status ${type}`;
     status.textContent = message;
   }
+
+  // ── 연결 주소 자동 보정 ────────────────────────────────────
+  //
+  // 광고를 처음 내보는 동네 사장님은 "https://" 를 안 쓴다.
+  // 그냥 "daum.com" 이라고 쓴다.
+  //
+  // 그런데 서버(ad_system.js 의 isValidHttpUrl)는 http 나 https 로
+  // 시작하지 않으면 거절한다. 그래서 그냥 두면 광고주가
+  //   결제 → 이미지 업로드 → 문구 작성 → 제출
+  // 을 다 한 마지막 순간에 거절당한다. 돈은 이미 낸 뒤다.
+  //
+  // 그래서 보내기 전에 여기서 https:// 를 붙여준다.
+  function normalizeLinkUrl(raw) {
+    const text = String(raw == null ? "" : raw).trim();
+
+    // 링크는 안 넣어도 된다. (서버도 빈 값은 통과시킨다)
+    if (!text) return "";
+
+    // 이미 http:// 또는 https:// 로 시작하면 그대로 둔다.
+    if (/^https?:\/\//i.test(text)) return text;
+
+    // mailto: tel: 처럼 다른 방식으로 시작하면 손대지 않는다.
+    // 앞에 https:// 를 붙이면 더 이상해진다.
+    // (이런 주소는 아래 looksLikeUsableUrl 에서 걸러진다)
+    if (/^[a-z][a-z0-9+.-]*:/i.test(text)) return text;
+
+    // "daum.com", "www.daum.com", "instagram.com/여우비" 처럼
+    // 주소만 쓴 경우에만 https:// 를 붙여준다.
+    return "https://" + text;
+  }
+
+  // 서버와 같은 기준으로 미리 검사한다.
+  // 여기서 걸러야 광고주가 어디가 틀렸는지 바로 알 수 있다.
+  function looksLikeUsableUrl(value) {
+    if (!value) return true; // 빈 값은 허용 (선택 항목)
+
+    let url;
+    try {
+      url = new URL(value);
+    } catch (_) {
+      return false;
+    }
+
+    if (url.protocol !== "http:" && url.protocol !== "https:") return false;
+
+    // 점이 없으면 홈페이지 주소가 아니다. (예: "안녕하세요")
+    if (!url.hostname.includes(".")) return false;
+
+    // 주소 안에 공백이 있으면 문장을 쓴 것이다.
+    if (/\s/.test(url.hostname)) return false;
+
+    return true;
+  }
+
+  // 입력칸에서 손을 떼는 순간 고쳐진 주소를 눈으로 보여준다.
+  // 제출할 때 몰래 바꾸면 광고주가 자기가 뭘 보냈는지 모른다.
+  link.addEventListener("blur", () => {
+    const fixed = normalizeLinkUrl(link.value);
+    if (fixed !== link.value) {
+      link.value = fixed;
+    }
+  });
 
   function isNational() {
     return currentProductId.includes(".national");
@@ -1004,6 +1088,23 @@
       return;
     }
 
+    // 연결 주소를 고쳐서 화면에도 반영한다.
+    // 이렇게 해두면 아래에서 막혔을 때 광고주가
+    // 자기가 뭘 보내려 했는지 그대로 볼 수 있다.
+    const linkText = normalizeLinkUrl(link.value);
+    link.value = linkText;
+
+    if (!looksLikeUsableUrl(linkText)) {
+      setStatus("error", "연결 주소를 다시 확인해주세요.");
+      alert(
+        "연결 주소가 올바르지 않습니다.\n\n" +
+        "홈페이지나 SNS 주소를 넣어주세요. (예: daum.com)\n" +
+        "연결할 곳이 없으면 비워두셔도 됩니다."
+      );
+      link.focus();
+      return;
+    }
+
     if (!contactName.value.trim() ||
         !contactPhone.value.trim()) {
       alert("신청자 이름과 연락처를 입력해주세요.");
@@ -1027,7 +1128,7 @@
         imageUrl,
         title: titleText,
         body: bodyText,
-        linkUrl: link.value.trim(),
+        linkUrl: linkText,
         ctaLabel: cta.value,
         contactName: contactName.value.trim(),
         contactPhone: contactPhone.value.trim()
