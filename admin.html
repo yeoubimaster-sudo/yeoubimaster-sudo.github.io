@@ -224,6 +224,29 @@
       flex-wrap: wrap;
     }
 
+    /*
+      스토어 거래번호. (2026-09-07 추가)
+      광고주가 "애플 영수증 보냅니다" 하고 연락해 왔을 때
+      어느 줄에 「신청 링크 재발급」을 눌러야 하는지 맞춰 보는 단서다.
+      숫자와 영문이 섞여 있어 고정폭 글꼴로 둔다. 1 과 l 을 눈으로 구분해야 한다.
+    */
+    .txid {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 12px;
+      word-break: break-all;
+      color: #55606f;
+    }
+
+    /*
+      링크 재발급 버튼. 승인/거절과 헷갈리면 안 되므로
+      테두리만 있는 조용한 모양으로 둔다. 자주 누를 버튼이 아니다.
+    */
+    .reissue {
+      background: #fff;
+      color: #344054;
+      border: 1px solid #cbd3de;
+    }
+
     .empty {
       text-align: center;
       padding: 70px 20px;
@@ -393,6 +416,10 @@
 
   const rejectAd =
     httpsCallable(functions, "rejectAd");
+
+  // 앱을 지운 광고주에게 보내줄 신청 링크를 새로 뽑는다. (2026-09-07 추가)
+  const reissueLink =
+    httpsCallable(functions, "reissueAdApplicationLink");
 
   const loginBox = document.getElementById("loginBox");
   const adminArea = document.getElementById("adminArea");
@@ -566,6 +593,31 @@
           `
           : "";
 
+      // ── 신청 링크 재발급 버튼 (2026-09-07 추가) ──────────────
+      //
+      // 광고주가 앱을 지우면 게시권을 영영 못 쓴다. 이 버튼이 유일한 구제책이다.
+      // 링크를 새로 뽑아서 문자로 보내주면 앱 없이도 신청서를 쓸 수 있다.
+      //
+      // 여기 목록은 서버 reissueAdApplicationLink 의 reissuable 과 **같아야 한다.**
+      // 여기만 넓히면 눌러도 서버가 거부하는 버튼이 된다.
+      const canReissue = [
+        "available",
+        "revision_requested",
+        "rejected",
+      ].includes(item.reviewStatus);
+
+      const reissueBox = canReissue
+        ? `
+          <div class="actions">
+            <button class="reissue"
+              data-action="reissue"
+              data-id="${esc(item.orderId)}">
+              신청 링크 재발급
+            </button>
+          </div>
+        `
+        : "";
+
       return `
         <article class="card">
 
@@ -626,6 +678,9 @@
 
                 <div class="label">게시 종료</div>
                 <div>${formatDate(item.endAt)}</div>
+
+                <div class="label">거래번호</div>
+                <div class="txid">${esc(item.transactionId || "-")}</div>
               </div>
 
               <div class="banner-preview">
@@ -649,6 +704,8 @@
               ${reasonBox}
 
               ${actions}
+
+              ${reissueBox}
 
             </div>
           </div>
@@ -683,6 +740,52 @@
           orderId,
           reason
         });
+      }
+
+      // ── 신청 링크 재발급 (2026-09-07 추가) ──────────────────
+      //
+      // 광고주가 앱을 지워서 게시권을 못 쓸 때 쓴다.
+      // 여기서 나온 주소를 문자로 보내주면 앱 없이 신청서를 쓸 수 있다.
+      if (action === "reissue") {
+        const ok = confirm(
+          "이 주문의 신청 링크를 새로 만듭니다.\n\n" +
+          "⚠️ 광고주가 전에 받은 링크는 이 순간부터 못 씁니다.\n" +
+          "⚠️ 이 주소를 아는 사람은 누구나 이 주문의 신청서를 쓸 수 있습니다.\n" +
+          "   본인이 맞는지 확인한 뒤 그 사람에게만 보내주세요.\n\n" +
+          "계속할까요?"
+        );
+
+        if (!ok) return;
+
+        const res = await reissueLink({ orderId });
+        const url = (res && res.data && res.data.url) || "";
+
+        if (!url) {
+          throw new Error("링크를 받지 못했습니다.");
+        }
+
+        // 복사가 되면 제일 편하다. 안 되는 브라우저도 있으므로
+        // 실패하면 prompt 로 띄워서 손으로 긁어 복사하게 한다.
+        let copied = false;
+
+        try {
+          await navigator.clipboard.writeText(url);
+          copied = true;
+        } catch (e) {
+          console.warn("클립보드 복사 실패", e);
+        }
+
+        if (copied) {
+          alert(
+            "링크를 복사했습니다.\n광고주에게 문자로 붙여넣어 보내주세요.\n\n" +
+            url
+          );
+        } else {
+          prompt(
+            "아래 주소를 복사해서 광고주에게 보내주세요.",
+            url
+          );
+        }
       }
 
       if (action === "reject") {
