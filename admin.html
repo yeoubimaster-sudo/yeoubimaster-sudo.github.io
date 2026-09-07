@@ -238,6 +238,46 @@
       margin-bottom: 16px;
     }
 
+    /*
+      내가 왜 수정요청/거절을 했는지 적어둔 사유를 카드 안에 보여준다.
+      (2026-09-07 추가. 그전에는 사유를 적어놓고도 볼 방법이 없었다)
+    */
+    .reason {
+      margin-top: 14px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      font-size: 14px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .reason .reason-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 800;
+      margin-bottom: 4px;
+      opacity: 0.75;
+    }
+
+    /*
+      이름을 reason-revision / reason-reject 로 따로 쓴다.
+      .revision 은 이미 「수정요청」 버튼이, .rejected 는 배지가 쓰고 있어서
+      그대로 쓰면 나중에 색을 바꿀 때 엉뚱한 곳이 같이 바뀐다.
+    */
+
+    /* 수정요청 = 보라색 (배지 색과 맞춤) */
+    .reason-revision {
+      background: #f3f0ff;
+      color: #4c3d9e;
+    }
+
+    /* 거절 = 빨간색 */
+    .reason-reject {
+      background: #fff0f0;
+      color: #b42318;
+    }
+
     @media(max-width:700px) {
       .content-grid {
         grid-template-columns: 1fr;
@@ -475,6 +515,32 @@
         item.productId ||
         "-";
 
+      // 수정요청 / 거절을 하면서 내가 적어둔 사유를 카드에 보여준다.
+      // (2026-09-07 추가. 그전에는 적어놓고도 볼 방법이 없었다)
+      //
+      // 상태로 고르지 않고 "값이 있으면 보여준다"로 한 이유:
+      // 수정요청 → 광고주가 다시 제출 → 상태는 pending 이 되지만
+      // 내가 뭐라고 요청했는지는 그때 오히려 더 봐야 한다.
+      let reasonBox = "";
+
+      if (item.revisionReason) {
+        reasonBox += `
+          <div class="reason reason-revision">
+            <span class="reason-label">수정요청 사유</span>
+            ${esc(item.revisionReason)}
+          </div>
+        `;
+      }
+
+      if (item.rejectReason) {
+        reasonBox += `
+          <div class="reason reason-reject">
+            <span class="reason-label">거절 사유</span>
+            ${esc(item.rejectReason)}
+          </div>
+        `;
+      }
+
       const actions =
         item.reviewStatus === "pending"
           ? `
@@ -579,6 +645,8 @@
                   </div>
                 </div>
               </div>
+
+              ${reasonBox}
 
               ${actions}
 
