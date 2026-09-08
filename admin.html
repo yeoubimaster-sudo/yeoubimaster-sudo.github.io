@@ -449,6 +449,22 @@
       </div>
     </div>
 
+    <!-- ── 자리 기다리는 사람들 (2026-09-08 추가) ────────────────────
+         앱에서 「자리 나면 알려주세요」를 누른 사람 명단이다.
+         이 사람들은 아직 돈을 안 냈다. 즉 놓친 매출 목록이다.
+         숫자가 큰 동네일수록 자리가 나면 바로 팔릴 곳이다. -->
+    <div id="waitlistCard" class="card" style="margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;
+                  align-items:center;gap:8px;flex-wrap:wrap">
+        <strong>자리 기다리는 사람</strong>
+        <span>
+          <span id="waitlistStatus" style="font-size:13px;color:#6b7280"></span>
+          <button id="waitlistRefresh" class="ghost">새로고침</button>
+        </span>
+      </div>
+      <div id="waitlistBody" style="margin-top:10px"></div>
+    </div>
+
     <div id="list"></div>
 
   </section>
@@ -509,6 +525,13 @@
   const reissueLink =
     httpsCallable(functions, "reissueAdApplicationLink");
 
+  // 만석이라 못 산 사람 명단과, 그 사람들 부르기. (2026-09-08 추가)
+  const listWaitlist =
+    httpsCallable(functions, "listAdWaitlist");
+
+  const notifyWaitlist =
+    httpsCallable(functions, "notifyAdWaitlist");
+
   const loginBox = document.getElementById("loginBox");
   const adminArea = document.getElementById("adminArea");
   const accountArea = document.getElementById("accountArea");
@@ -516,6 +539,8 @@
   const list = document.getElementById("list");
   const errorBox = document.getElementById("errorBox");
   const statusText = document.getElementById("statusText");
+  const waitlistBody = document.getElementById("waitlistBody");
+  const waitlistStatus = document.getElementById("waitlistStatus");
 
   let applications = [];
   let currentFilter = "all";
@@ -623,6 +648,111 @@
       statusText.textContent = "";
     }
   }
+
+  // ── 자리 기다리는 사람 명단 (2026-09-08 추가) ──────────────────────
+  //
+  // [왜 별도로 불러오는가]
+  //   광고 신청 목록(listAdApplications)은 "돈 낸 사람"이고,
+  //   이 명단은 "돈 내려다 만석이라 못 낸 사람"이다. 완전히 다른 집합이라
+  //   한 번에 못 가져온다.
+  //
+  // [실패해도 위 목록을 망치지 않는다]
+  //   여기서 showError 를 부르면 광고 신청 목록의 오류 상자를 덮어쓴다.
+  //   이 명단은 보조 정보이므로, 실패하면 이 상자 안에서만 조용히 알린다.
+
+  async function loadWaitlist() {
+    waitlistStatus.textContent = "불러오는 중...";
+
+    try {
+      const result = await listWaitlist({});
+      const items = result.data.items || [];
+      const total = result.data.total || 0;
+
+      waitlistStatus.textContent =
+        total ? `${total}명 대기` : "";
+
+      if (!items.length) {
+        waitlistBody.innerHTML =
+          '<div class="empty">지금 자리를 기다리는 사람이 없습니다.</div>';
+        return;
+      }
+
+      waitlistBody.innerHTML = items.map(item => {
+        const contacts = (item.contacts || []).join(", ");
+
+        return `
+          <div style="display:flex;justify-content:space-between;
+                      align-items:center;gap:10px;flex-wrap:wrap;
+                      padding:8px 0;border-top:1px solid #e5e7eb">
+            <div>
+              <strong>${esc(regionName(item.regionKey))}</strong>
+              <span style="color:#6b7280">· ${item.count}명</span>
+              ${contacts
+                ? `<div style="font-size:12px;color:#6b7280;margin-top:2px">
+                     ${esc(contacts)}
+                   </div>`
+                : ""}
+            </div>
+            <button class="ghost notify"
+                    data-region="${esc(item.regionKey)}"
+                    data-count="${item.count}">
+              자리 났다고 알리기
+            </button>
+          </div>
+        `;
+      }).join("");
+
+    } catch (error) {
+      console.error(error);
+
+      waitlistStatus.textContent = "";
+      waitlistBody.innerHTML =
+        '<div class="error">대기 명단을 불러오지 못했습니다. ' +
+        esc(error.message || "") + '</div>';
+    }
+  }
+
+  // 명단은 알림을 보낼 때마다 다시 그려진다. 그래서 버튼마다 따로 붙이지 않고
+  // 상자 하나에만 붙여서 위임 처리한다. (다시 그려도 계속 동작한다)
+  waitlistBody.addEventListener("click", async event => {
+    const button = event.target.closest("button.notify");
+    if (!button) return;
+
+    const regionKey = button.dataset.region;
+    const count = button.dataset.count;
+
+    // 한 번 보내면 되돌릴 수 없다. 그래서 확인을 받는다.
+    // 사람 수를 문구에 넣는 이유: 잘못된 동네를 눌렀을 때 알아채라고.
+    const yes = confirm(
+      regionName(regionKey) + " 대기자 " + count + "명에게 " +
+      "「자리가 났다」고 알림을 보냅니다.\n\n" +
+      "한 사람에게 한 번만 보낼 수 있습니다. 계속할까요?"
+    );
+
+    if (!yes) return;
+
+    button.disabled = true;
+    button.textContent = "보내는 중...";
+
+    try {
+      const result = await notifyWaitlist({regionKey});
+      const sent = result.data.sent || 0;
+      const failed = result.data.failed || 0;
+
+      alert(
+        "알림 " + sent + "건을 보냈습니다." +
+        (failed
+          ? "\n\n" + failed + "명은 실패했습니다. " +
+            "(알림을 꺼두었거나 앱을 지운 경우입니다. 정상입니다.)"
+          : "")
+      );
+    } catch (error) {
+      console.error(error);
+      alert("알림을 보내지 못했습니다.\n\n" + (error.message || ""));
+    }
+
+    await loadWaitlist();
+  });
 
   function render() {
     const rows = applications.filter(item =>
@@ -1098,6 +1228,9 @@
   document.getElementById("refreshButton")
     .addEventListener("click", loadApplications);
 
+  document.getElementById("waitlistRefresh")
+    .addEventListener("click", loadWaitlist);
+
   document.getElementById("loginButton")
     .addEventListener("click", async () => {
       clearError();
@@ -1147,6 +1280,9 @@
     adminEmail.textContent = user.email;
 
     await loadApplications();
+
+    // 대기 명단은 따로 부른다. 이게 실패해도 위 목록은 이미 떠 있다.
+    await loadWaitlist();
   });
 </script>
 
