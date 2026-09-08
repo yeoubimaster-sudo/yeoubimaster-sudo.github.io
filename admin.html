@@ -164,6 +164,10 @@
     .available { background:#e7eef7; }
     .expired { background:#ececec; }
 
+    /* 관리자가 게시를 내린 상태. (2026-09-08 추가)
+       거절(연빨강)과 헷갈리면 안 되므로 진한 회갈색으로 구분한다. */
+    .taken_down { background:#3f3f46; color:#fff; }
+
     .content-grid {
       display: grid;
       grid-template-columns: 220px 1fr;
@@ -245,6 +249,18 @@
       background: #fff;
       color: #344054;
       border: 1px solid #cbd3de;
+    }
+
+    /*
+      「게시 내리기」 버튼. (2026-09-08 추가)
+
+      이미 돈을 받고 나가고 있는 광고를 멈추는 버튼이다.
+      거절(.reject, 빨강)보다 더 무거운 동작이라 검정에 가깝게 해서
+      다른 버튼과 섞여 실수로 눌리지 않게 한다.
+    */
+    .takedown {
+      background: #1f2937;
+      color: #fff;
     }
 
     /*
@@ -362,6 +378,12 @@
       color: #b42318;
     }
 
+    /* 게시중단 = 진회색 (2026-09-08 추가) */
+    .reason-takedown {
+      background: #eceef1;
+      color: #1f2937;
+    }
+
     @media(max-width:700px) {
       .content-grid {
         grid-template-columns: 1fr;
@@ -418,6 +440,7 @@
         <button class="filter" data-status="revision_requested">수정요청</button>
         <button class="filter" data-status="active">게시중</button>
         <button class="filter" data-status="rejected">거절</button>
+        <button class="filter" data-status="taken_down">게시중단</button>
       </div>
 
       <div>
@@ -478,6 +501,10 @@
   const rejectAd =
     httpsCallable(functions, "rejectAd");
 
+  // 이미 게시된 광고를 내린다. (2026-09-08 추가)
+  const takeDownAd =
+    httpsCallable(functions, "takeDownAd");
+
   // 앱을 지운 광고주에게 보내줄 신청 링크를 새로 뽑는다. (2026-09-07 추가)
   const reissueLink =
     httpsCallable(functions, "reissueAdApplicationLink");
@@ -521,7 +548,11 @@
     revision_requested: "수정요청",
     rejected: "거절",
     active: "게시중",
-    expired: "게시종료"
+    expired: "게시종료",
+
+    // 관리자가 게시를 내린 상태. (2026-09-08 추가)
+    // 광고주가 고쳐서 다시 낼 수 있는 상태다. 「끝」이 아니다.
+    taken_down: "게시중단"
   };
 
   function esc(value) {
@@ -642,6 +673,17 @@
         `;
       }
 
+      // 게시를 내린 이유. (2026-09-08 추가)
+      // 나중에 "이거 왜 내렸더라"를 반드시 볼 수 있어야 한다.
+      if (item.takenDownReason) {
+        reasonBox += `
+          <div class="reason reason-takedown">
+            <span class="reason-label">게시중단 사유</span>
+            ${esc(item.takenDownReason)}
+          </div>
+        `;
+      }
+
       const actions =
         item.reviewStatus === "pending"
           ? `
@@ -667,6 +709,24 @@
           `
           : "";
 
+      // ── 「게시 내리기」 버튼 (2026-09-08 추가) ────────────────
+      //
+      // 이미 앱에 나가고 있는 광고를 멈추는 버튼이다.
+      // 게시중(active)일 때만 나온다. 서버도 같은 조건으로 막는다.
+      // (ad_system.js takeDownAd: reviewStatus !== "active" 면 거부)
+      const takeDownBox =
+        item.reviewStatus === "active"
+          ? `
+            <div class="actions">
+              <button class="takedown"
+                data-action="takedown"
+                data-id="${esc(item.orderId)}">
+                게시 내리기
+              </button>
+            </div>
+          `
+          : "";
+
       // ── 신청 링크 재발급 버튼 (2026-09-07 추가) ──────────────
       //
       // 광고주가 앱을 지우면 게시권을 영영 못 쓴다. 이 버튼이 유일한 구제책이다.
@@ -678,6 +738,9 @@
         "available",
         "revision_requested",
         "rejected",
+        // 게시를 내린 뒤 광고주가 고쳐서 다시 내려면 링크가 필요하다.
+        // (2026-09-08 추가. 서버 reissuable 에도 같이 넣었다)
+        "taken_down",
       ].includes(item.reviewStatus);
 
       const reissueBox = canReissue
@@ -817,6 +880,8 @@
 
               ${actions}
 
+              ${takeDownBox}
+
               ${reissueBox}
 
               ${linkBox}
@@ -921,6 +986,57 @@
           "복사가 안 됩니다. 주소가 선택돼 있으니 Cmd+C 를 눌러주세요.";
 
         // 목록을 다시 불러오면 선택이 풀리므로 여기서 끝낸다.
+        return;
+      }
+
+      // ── 게시 내리기 (2026-09-08 추가) ──────────────────────
+      //
+      // 이미 앱에 나가고 있는 광고를 멈춘다.
+      // 광고주가 돈을 낸 거래라 확인창을 두 번 띄운다.
+      //   ① 사유 입력 (사유 없이는 못 내린다. 서버도 거부한다)
+      //   ② 마지막 확인
+      if (action === "takedown") {
+        const reason = prompt(
+          "게시를 내리는 사유를 입력하세요.\n" +
+          "광고주 폰으로 이 내용이 그대로 갑니다."
+        );
+
+        if (!reason) return;
+
+        const ok = confirm(
+          "이 광고를 지금 즉시 앱에서 내립니다.\n\n" +
+          "· 광고주에게 알림이 갑니다.\n" +
+          "· 그 지역 광고 자리는 바로 비워집니다.\n" +
+          "· 광고주는 내용을 고쳐 다시 낼 수 있습니다.\n" +
+          "  (「신청 링크 재발급」을 눌러 링크를 보내주세요)\n" +
+          "· 다시 승인하면 게시 기간이 그 시점부터 새로 계산됩니다.\n" +
+          "  즉 이미 나갔던 날짜만큼 광고주가 이득을 봅니다.\n\n" +
+          "계속할까요?"
+        );
+
+        if (!ok) return;
+
+        const res = await takeDownAd({ orderId, reason });
+
+        // 목록을 **먼저** 새로 불러온다.
+        // loadApplications 안에서 clearError() 가 돌기 때문에,
+        // 경고를 먼저 띄우면 그 자리에서 지워져 버린다.
+        await loadApplications();
+
+        // 서버가 ads 문서에서 해당 칸을 못 찾은 경우.
+        // 신청서 상태는 바뀌었지만 앱에는 아직 보일 수 있다.
+        // 조용히 넘기면 "내렸는데 왜 계속 보이지"가 된다.
+        if (res && res.data && res.data.removedFromAds === false) {
+          showError(
+            "신청서 상태는 「게시중단」으로 바꿨지만, 광고 목록에서 " +
+            "해당 항목을 찾지 못했습니다. 앱에 아직 보일 수 있으니 " +
+            "Firebase 콘솔의 ads 문서를 직접 확인해주세요."
+          );
+        } else {
+          statusText.textContent = "게시를 내렸습니다.";
+        }
+
+        // 아래 공통 loadApplications 를 또 돌지 않도록 여기서 끝낸다.
         return;
       }
 
