@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>보는날씨 다운로드</title>
+<meta name="description" content="눈으로 확인하는 현장 날씨, 보는날씨를 다운로드하세요.">
+<style>
+*{box-sizing:border-box}body{margin:0;background:#edf8ff;color:#153247;font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif;min-height:100svh;display:grid;place-items:center;padding:24px}main{width:100%;max-width:440px;background:white;border-radius:28px;padding:36px 28px;text-align:center;box-shadow:0 12px 50px #1532470c}img{width:200px;max-width:80%;height:auto}h1{font-size:27px;line-height:1.4;margin:16px 0}p{line-height:1.7;color:#53687b}.button{display:block;text-decoration:none;background:#079ee2;color:white;padding:18px;border-radius:14px;font-weight:700;margin:24px 0 14px}.notice{background:#f2f7fa;border-radius:14px;padding:18px;text-align:left}.notice strong{display:block;margin-bottom:8px}.notice p{margin:0;font-size:14px}footer{margin-top:26px}footer a{color:#53687b;font-size:14px}#status{font-size:15px}a:focus-visible{outline:3px solid #ff9d00;outline-offset:4px}
+</style>
+</head>
+<body><main>
+<img src="logo.png" alt="보는날씨" width="1024" height="1024">
+<h1>눈으로 확인하는<br>현장 날씨</h1>
+<p id="status" role="status">보는날씨로 지금 날씨를 확인하세요.</p>
+<a class="button" id="ios-link" href="https://apps.apple.com/kr/app/id6762339060">iPhone · App Store 다운로드</a>
+<section class="notice" id="android-notice"><strong>안드로이드 출시 준비 중</strong><p>현재 Google Play 심사 중입니다.<br>출시 후 이 QR에서 바로 다운로드할 수 있어요.</p></section>
+<footer><a href="/">보는날씨 홈페이지</a></footer>
+</main><script>
+// Google Play 승인 후 공식 스토어 URL을 설정하면 기존 QR을 그대로 사용할 수 있습니다.
+const ANDROID_STORE_URL = '';
+const IOS_STORE_URL = 'https://apps.apple.com/kr/app/id6762339060';
+const ua = navigator.userAgent || '';
+const isAndroid = /Android/i.test(ua);
+const isIOS = /iPhone|iPad|iPod/i.test(ua) || (/Macintosh/i.test(ua) && navigator.maxTouchPoints > 1);
+const status = document.getElementById('status');
+if (ANDROID_STORE_URL) {
+ const notice = document.getElementById('android-notice');
+ notice.textContent = '';
+ const link = document.createElement('a'); link.className='button'; link.href=ANDROID_STORE_URL;
+ link.textContent='Android · Google Play 다운로드'; notice.appendChild(link);
+}
+if (isIOS) {
+ status.textContent='App Store로 이동합니다. 열리지 않으면 아래 버튼을 눌러주세요.';
+ window.location.replace(IOS_STORE_URL);
+} else if (isAndroid && ANDROID_STORE_URL) {
+ status.textContent='Google Play로 이동합니다. 열리지 않으면 아래 버튼을 눌러주세요.';
+ window.location.replace(ANDROID_STORE_URL);
+} else if (isAndroid) {
+ status.textContent='안드로이드에서도 곧 만나요!';
+}
+</script></body></html>
