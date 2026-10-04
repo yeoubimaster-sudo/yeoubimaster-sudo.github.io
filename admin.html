@@ -397,6 +397,8 @@
         grid-template-columns: 105px 1fr;
       }
     }
+    #discoveryReport th, #discoveryReport td { padding: 10px 6px; border-bottom: 1px solid #edf2f7; }
+    #discoveryReport select { padding: 8px; border: 1px solid #cbdde8; border-radius: 8px; background: #fff; color: #173d50; }
   </style>
 </head>
 
@@ -432,6 +434,34 @@
   <section id="adminArea">
 
     <div id="errorBox"></div>
+
+    <section class="card" id="discoveryReport" style="margin-bottom:24px" aria-labelledby="discoveryHeading">
+      <h2 id="discoveryHeading" style="margin-top:0">지역소식 광고 성과</h2>
+      <p>캠핑장 · 축제 · 관광지와 보는날씨 자체 광고의 실제 이용 기록입니다. <b>청구 금액 0원</b>이며 유료 광고 실적에 포함하지 않습니다.</p>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center">
+        <label>기간 <select id="discoveryDays"><option value="1">오늘</option><option value="7" selected>최근 7일</option><option value="30">최근 30일</option></select></label>
+        <button id="discoveryRefresh" class="ghost">성과 새로고침</button>
+        <span>노출 <strong id="discoveryImpressions">—</strong></span>
+        <span>클릭 <strong id="discoveryClicks">—</strong></span>
+        <span>클릭률 <strong id="discoveryCtr">—</strong></span>
+      </div>
+      <p style="font-size:13px;color:#516779;line-height:1.7">노출은 앱이 켜진 상태에서 배너의 절반 이상이 1초 연속 보인 경우입니다. 클릭은 같은 배너 표시당 한 번, 클릭률은 유효 노출 중 클릭된 비율입니다. 1초 전에 누른 클릭도 클릭 수에는 포함됩니다. 앱에서 보낸 기록을 중복·빈도 검사한 수치이며 구매나 방문을 뜻하지 않습니다.</p>
+      <p id="discoveryApi" style="font-weight:600"></p>
+      <p style="font-size:12px;color:#516779">위 호출 상한은 광고용 서버에만 적용됩니다. 기존 지도 기능의 호출은 별도이며 공공데이터 계정의 전체 잔여량을 나타내지 않습니다. 서버 저장소와 Firebase 집계 이용료는 발생할 수 있습니다.</p>
+      <div style="overflow-x:auto">
+        <table style="width:100%;text-align:left;border-collapse:collapse;font-size:13px" aria-label="날짜별 지역소식 광고 성과">
+          <thead><tr><th>날짜</th><th>종류</th><th>소식</th><th>노출</th><th>클릭</th><th>클릭률</th></tr></thead>
+          <tbody id="discoveryRows"></tbody>
+        </table>
+      </div>
+      <p id="discoveryEmpty" hidden>아직 집계가 없습니다. 업데이트된 앱에서 실제로 배너를 보거나 누르면 기록이 쌓입니다.</p>
+      <p id="discoveryStatus" role="status" style="font-size:12px;color:#516779">로그인하면 집계를 확인할 수 있습니다.</p>
+      <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center;border-top:1px solid #e5edf2;padding-top:16px">
+        <label><input id="discoveryEnabled" type="checkbox"> 지역소식 배너 사용</label>
+        <label><input id="discoveryMeasurement" type="checkbox"> 비과금 성과 집계 사용</label>
+        <button id="discoverySave" class="ghost" disabled>설정 저장</button>
+      </div>
+    </section>
 
     <div class="toolbar">
       <div class="filters">
@@ -472,6 +502,7 @@
 </main>
 
 <script type="module">
+  import {mountDiscoveryReport} from './discovery-admin.js';
   import {
     initializeApp
   } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
@@ -504,6 +535,7 @@
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const functions = getFunctions(app, "asia-northeast3");
+  const discoveryReport = mountDiscoveryReport(functions, httpsCallable);
 
   const listApplications =
     httpsCallable(functions, "listAdApplications");
@@ -1278,6 +1310,8 @@
     accountArea.style.display = "block";
 
     adminEmail.textContent = user.email;
+
+    void discoveryReport.load();
 
     await loadApplications();
 
