@@ -26,34 +26,35 @@
       <button id="loginButton" class="primary" type="button">Google 관리자 로그인</button>
       <button id="verifyButton" class="secondary" type="button" hidden>관리 권한 다시 확인</button>
     </section>
-    <section id="workspace" hidden aria-label="현장 소식 검수">
+    <section id="workspace" hidden aria-label="현장 소식 신고 관리">
       <div id="featureNotice" class="notice" role="status"></div>
       <div class="workspace-toolbar">
         <div class="view-switch" aria-label="관리 항목">
-          <button id="postsTab" type="button" class="selected" aria-pressed="true">게시물 검수</button>
-          <button id="reportsTab" type="button" aria-pressed="false">신고 관리</button>
+          <button id="reportsTab" type="button" class="selected" aria-pressed="true">신고 관리</button>
+          <button id="postsTab" type="button" aria-pressed="false">게시물 조회</button>
         </div>
         <button id="refreshButton" class="secondary" type="button">새로고침</button>
       </div>
       <div class="list-toolbar">
-        <div><h2 id="listHeading">검토 대기 게시물</h2><p id="listStatus" class="muted" role="status" aria-live="polite"></p></div>
-        <label id="postFilterField" class="filter-field">게시물 상태
+        <div><h2 id="listHeading">미처리 신고</h2><p id="listStatus" class="muted" role="status" aria-live="polite"></p></div>
+        <label id="postFilterField" class="filter-field" hidden>게시물 상태
           <select id="postStatus">
-            <option value="pending_review">검토 대기 · 비공개</option>
+            <option value="published">공개 중</option>
+            <option value="hidden">운영자 비공개</option>
+            <option value="pending_review">이전 검토 대기 · 비공개</option>
             <option value="processing">파일 처리 중 · 비공개</option>
             <option value="pending_upload">업로드 대기 · 비공개</option>
-            <option value="published">공개 중</option>
-            <option value="rejected">거절·내림 · 비공개</option>
+            <option value="rejected">이전 거절·내림</option>
             <option value="expired">공개 만료</option>
             <option value="failed">파일 처리 실패</option>
             <option value="deleted">삭제됨</option>
           </select>
         </label>
-        <label id="reportFilterField" class="filter-field" hidden>신고 상태
-          <select id="reportStatus"><option value="open">확인 필요</option><option value="resolved">처리 완료</option></select>
+        <label id="reportFilterField" class="filter-field">신고 상태
+          <select id="reportStatus"><option value="open">미처리</option><option value="resolved">처리 완료</option></select>
         </label>
       </div>
-      <p class="policy-note">접수 기준: 사진 또는 5초 이하 영상 · 설명 150자 · 태그 최대 5개(각 24자) · 공개 기간 1시간 또는 24시간. 유료 자동 검수는 사용하지 않습니다.</p>
+      <p class="policy-note">파일 기준을 통과하면 바로 공개합니다. 사전 승인은 하지 않으며 신고된 내용만 검토합니다. 비공개는 파일을 남기고, 삭제는 파일 정리를 진행합니다. 유료 자동 검수는 사용하지 않습니다.</p>
       <div id="items" class="items" aria-busy="false"></div>
       <div id="emptyState" class="empty-state" hidden><h3>표시할 항목이 없어요</h3><p>다른 상태를 선택하거나 새로고침해 주세요.</p></div>
       <div class="load-more"><button id="loadMoreButton" class="secondary" type="button" hidden>더 불러오기</button></div>
@@ -67,6 +68,7 @@
       <textarea id="reviewReason" rows="4" autocomplete="off" placeholder="검토한 내용과 처리 사유를 적어 주세요."></textarea>
       <div class="reason-counter"><span id="reasonCount">0</span> / 300자</div>
       <p id="dialogError" class="dialog-error" role="alert" hidden></p>
+      <label id="deleteConfirmationField" class="delete-confirmation" hidden><input id="deleteConfirmation" type="checkbox"> 게시물과 파일 삭제를 진행하며 관리 화면에서 되돌릴 수 없음을 확인했습니다.</label>
       <div class="dialog-actions"><button id="dialogCancel" type="button" class="secondary">취소</button><button id="dialogConfirm" type="submit" class="primary">확인</button></div>
     </form>
   </dialog>

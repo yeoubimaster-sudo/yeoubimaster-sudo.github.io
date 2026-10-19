@@ -44,6 +44,7 @@ select { max-width: 100%; min-height: 42px; border: 1px solid #d1dce7; border-ra
 .badge { flex-shrink: 0; display: inline-block; border-radius: 7px; background: #e9eef4; color: #425d74; padding: 5px 8px; font-size: 11px; font-weight: 700; }
 .badge.pending_review, .badge.open { color: #865f11; background: #fff0ca; }
 .badge.published { color: #17664a; background: #dcf3e8; }
+.badge.hidden { color: #6f4c9a; background: #eee4fb; }
 .badge.rejected, .badge.failed { color: #9d3542; background: #ffe7e9; }
 .badge.expired, .badge.deleted, .badge.resolved { color: #606e7b; background: #edf0f3; }
 .item-id { font: 11px ui-monospace, monospace; color: #7b8c99; margin-top: 4px; }
@@ -71,6 +72,9 @@ textarea { display: block; width: 100%; resize: vertical; min-height: 110px; bor
 .reason-counter { text-align: right; font-size: 11px; color: #738595; margin-top: 6px; }
 .dialog-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; }
 .dialog-error { color: #a32636; }
+.report-state-note { color: #687e8f; font-size: 12px; }
+.delete-confirmation { display: flex; align-items: flex-start; gap: 9px; margin-top: 20px; padding: 13px; background: #fff1f2; border: 1px solid #edc7cc; border-radius: 10px; font-size: 13px; line-height: 1.65; color: #942b39; }
+.delete-confirmation input { flex-shrink: 0; margin-top: 5px; width: 17px; height: 17px; }
 @media (max-width: 680px) {
   .header-inner { padding: 16px; gap: 12px; }
   h1 { font-size: 21px; }

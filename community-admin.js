@@ -10,7 +10,7 @@ const FIREBASE_CONFIG = {
 
 const STATUS_LABELS = Object.freeze({
   pending_upload: '업로드 대기 · 비공개', processing: '파일 처리 중 · 비공개',
-  pending_review: '검토 대기 · 비공개', published: '공개 중', rejected: '거절·내림 · 비공개',
+  pending_review: '이전 검토 대기 · 비공개', published: '공개 중', hidden: '운영자 비공개', rejected: '이전 거절·내림',
   expired: '공개 만료', failed: '파일 처리 실패', deleted: '삭제됨', open: '확인 필요', resolved: '처리 완료'
 });
 const REPORT_LABELS = Object.freeze({
@@ -20,7 +20,8 @@ const REPORT_LABELS = Object.freeze({
 });
 const SAFE_REASONS = Object.freeze({
   'operator-rejected': '운영자 검토 후 비공개', 'invalid-media': '파일 기준에 맞지 않음',
-  'processing-failed': '파일 처리 실패', 'upload-expired': '업로드 시간 만료'
+  'processing-failed': '파일 처리 실패', 'upload-expired': '업로드 시간 만료',
+  'operator-hidden': '운영자 비공개', 'operator-deleted': '운영자 삭제'
 });
 
 export function safeMediaUrl(value) {
@@ -43,6 +44,18 @@ export function effectiveStatus(item, now = Date.now()) {
 export function canApprove(config, item, now = Date.now()) {
   return config?.enabled === true && config?.manualReviewRequired === true &&
     config?.paidModerationEnabled === false && effectiveStatus(item, now) === 'pending_review';
+}
+
+export function canRestore(config, item, now = Date.now()) {
+  const expiry = Number(item?.expiresAtMs);
+  return config?.enabled === true && config?.paidModerationEnabled === false &&
+    effectiveStatus(item, now) === 'hidden' && Number.isFinite(expiry) && expiry > now;
+}
+
+export function reviewPolicy(config) {
+  if (config?.reviewPolicy === 'auto_publish' && config?.manualReviewRequired === false) return 'auto_publish';
+  if (config?.reviewPolicy === 'manual_review' || config?.manualReviewRequired === true) return 'manual_review';
+  return 'unknown';
 }
 
 export function previewLifetime(expiresAtMs, serverNow = Date.now()) {
@@ -75,7 +88,7 @@ function errorMessage(error) {
 export function mountCommunityAdmin({api, auth, onAuthStateChanged, login, logout, document: doc = document}) {
   const el = id => doc.getElementById(id);
   const state = {authorized: false, user: null, authEpoch: 0, viewEpoch: 0,
-    view: 'posts', config: null, nextCursor: null, items: [], loading: false,
+    view: 'reports', config: null, nextCursor: null, items: [], loading: false,
     busy: false, modal: null, serverOffset: 0};
   const previews = new Map();
   const now = () => Date.now() - state.serverOffset;
@@ -143,11 +156,15 @@ export function mountCommunityAdmin({api, auth, onAuthStateChanged, login, logou
     setError(errorMessage(error));
   }
   function featureNotice() {
-    const active = state.config?.enabled === true && state.config?.manualReviewRequired === true && state.config?.paidModerationEnabled === false;
+    const active = state.config?.enabled === true && state.config?.paidModerationEnabled === false;
     el('featureNotice').classList.toggle('off', !active);
-    el('featureNotice').textContent = active
-      ? '현장 소식 운영 중 · 운영자 검토 후 공개합니다. 유료 자동 검수는 꺼져 있습니다.'
-      : '현장 소식 공개 기능은 준비 중이거나 꺼져 있습니다. 목록 확인·거절·공개 중단은 가능하며 신규 승인은 제한됩니다.';
+    el('featureNotice').textContent = !active
+      ? '현장 소식 공개 기능은 꺼져 있거나 준비 중입니다. 신고 확인·비공개 전환·삭제는 가능하며 다시 공개는 제한됩니다.'
+      : reviewPolicy(state.config) === 'auto_publish'
+        ? '파일 기준을 통과한 게시물은 바로 공개됩니다. 사전 승인은 하지 않으며 신고된 내용만 확인해 공개 유지·비공개 전환·삭제를 결정합니다. 유료 자동 검수는 꺼져 있습니다.'
+        : reviewPolicy(state.config) === 'manual_review'
+          ? '서버에 이전 수동 공개 정책이 설정돼 있습니다. 자동 공개 운영 설정을 확인해 주세요. 유료 자동 검수는 꺼져 있습니다.'
+          : '서버 공개 정책을 확인하지 못했습니다. 공개 상태를 새로고침해 확인해 주세요.';
   }
   async function verify() {
     const epoch = state.authEpoch;
@@ -167,7 +184,8 @@ export function mountCommunityAdmin({api, auth, onAuthStateChanged, login, logou
       el('loginPanel').hidden = true;
       el('workspace').hidden = false;
       el('accountStatus').textContent = '관리자 확인 완료';
-      el('pageStatus').textContent = '비공개 게시물과 신고는 관리자에게만 표시됩니다.';
+      el('pageStatus').textContent = '미처리 신고부터 확인합니다. 신고 내용과 비공개 게시물은 관리자에게만 표시됩니다.';
+      viewControls();
       featureNotice();
       await loadItems();
     } catch (error) {
@@ -189,7 +207,7 @@ export function mountCommunityAdmin({api, auth, onAuthStateChanged, login, logou
     setError(''); controls();
     const view = state.view;
     const filter = el(view === 'posts' ? 'postStatus' : 'reportStatus').value;
-    el('listHeading').textContent = view === 'posts' ? statusLabel(filter) + ' 게시물' : statusLabel(filter) + ' 신고';
+    el('listHeading').textContent = view === 'posts' ? statusLabel(filter) + ' 게시물' : (filter === 'open' ? '미처리 신고' : '처리 완료 신고');
     try {
       const result = await (view === 'posts'
         ? api.list({status: filter, limit: 20, ...(cursor ? {cursor} : {})})
@@ -256,11 +274,15 @@ export function mountCommunityAdmin({api, auth, onAuthStateChanged, login, logou
       ['처리 상태', SAFE_REASONS[item.safeReason] || statusLabel(status)],
       ...(item.moderationReason ? [['검토 사유', item.moderationReason]] : [])
     ]));
-    if (['pending_review', 'published'].includes(status)) actions.append(mediaArea(body, item, 'post:' + item.id));
-    if (status === 'pending_review') {
+    if (['pending_review', 'published', 'hidden'].includes(status)) actions.append(mediaArea(body, item, 'post:' + item.id));
+    if (status === 'pending_review' && canApprove(state.config, item, now())) {
       actions.append(button('승인', 'approve', () => openReview('approve', item), !canApprove(state.config, item, now())));
-      actions.append(button('거절', 'danger', () => openReview('reject', item)));
-    } else if (status === 'published') actions.append(button('즉시 내리기', 'danger', () => openReview('unpublish', item)));
+    }
+    if (status === 'published') actions.append(button('비공개 전환', 'secondary', () => openReview('hide', item)));
+    if (status === 'hidden') actions.append(button('다시 공개', 'primary', () => openReview('restore', item), !canRestore(state.config, item, now())));
+    if (['pending_review', 'published', 'hidden', 'rejected', 'expired', 'failed', 'processing', 'pending_upload'].includes(status)) {
+      actions.append(button('삭제', 'danger', () => openReview('delete', item)));
+    }
     return card;
   }
   function reportCard(item) {
@@ -268,13 +290,21 @@ export function mountCommunityAdmin({api, auth, onAuthStateChanged, login, logou
     const {card, body, actions} = cardShell(item, status, REPORT_LABELS[item.reason] || '신고 내용 확인');
     body.append(text('p', item.details || '추가 설명 없음', 'report-details'));
     body.append(metadata([['신고 접수', date(item.createdAtMs)],
-      ['게시물', String(item.postId || '').slice(0, 12)], ['게시 상태', statusLabel(item.postStatus)],
+      ['게시물', String(item.postId || '').slice(0, 12)], ['현재 게시 상태', statusLabel(item.postStatus)],
       ...(status === 'resolved' ? [['검토 메모', item.resolutionNote || '—']] : [])]));
-    if (item.postId && !['expired', 'deleted', 'rejected', 'failed'].includes(item.postStatus)) {
+    body.append(text('p', '신고 처리 상태와 게시물 공개 상태는 별개입니다.', 'report-state-note'));
+    if (item.postId && ['published', 'hidden', 'pending_review'].includes(item.postStatus)) {
       actions.append(mediaArea(body, {...item, id: item.postId}, 'report:' + (item.id || item.reportId)));
-      if (status === 'open') actions.append(button('게시물 내리기', 'danger', () => openReview('unpublish', {id: item.postId, status: item.postStatus})));
     }
-    if (status === 'open') actions.append(button('처리 완료', 'primary', () => openReview('resolve', item)));
+    if (status === 'open') {
+      actions.append(button(item.postStatus === 'published' ? '공개 유지 · 신고 처리 완료' : '신고 처리 완료', 'primary', () => openReview('resolve', item)));
+      const post = {id: item.postId, status: item.postStatus};
+      const reportId = item.id || item.reportId;
+      if (item.postId && item.postStatus === 'published') actions.append(button('비공개 전환', 'secondary', () => openReview('hide', post, reportId)));
+      if (item.postId && ['pending_review', 'published', 'hidden', 'rejected', 'expired', 'failed', 'processing', 'pending_upload'].includes(item.postStatus)) {
+        actions.append(button('삭제', 'danger', () => openReview('delete', post, reportId)));
+      }
+    }
     return card;
   }
   async function loadPreview(item, key, container) {
@@ -305,66 +335,99 @@ export function mountCommunityAdmin({api, auth, onAuthStateChanged, login, logou
       }
     }
   }
-  function openReview(action, item) {
+  function openReview(action, item, reportId = null) {
     if (!state.authorized || state.busy || state.loading) return;
     if (action === 'approve' && !canApprove(state.config, item, now())) return;
-    state.modal = {action, item, epoch: state.authEpoch};
-    const titles = {approve: '게시물을 공개할까요?', reject: '게시물을 거절할까요?', unpublish: '게시물을 즉시 내릴까요?', resolve: '신고 검토를 완료할까요?'};
+    if (action === 'restore' && !canRestore(state.config, item, now())) return;
+    state.modal = {action, item, reportId, epoch: state.authEpoch};
+    const titles = {approve: '게시물을 공개할까요?', hide: '게시물을 비공개로 바꿀까요?', restore: '게시물을 다시 공개할까요?', delete: '게시물과 미디어를 삭제할까요?', resolve: '이 신고를 처리 완료할까요?'};
     const descriptions = {
       approve: '사진·영상과 설명을 검토한 후 승인해 주세요. 공개 기간이 남아 있을 때만 공개됩니다.',
-      reject: '게시물을 공개하지 않고 미디어를 정리합니다. 처리 사유를 남겨 주세요.',
-      unpublish: '공개와 새 공유를 중단하고 미디어 정리를 요청합니다. 이미 받은 화면이나 파일까지 회수할 수는 없습니다.',
-      resolve: '이 신고를 처리 완료 목록으로 옮깁니다. 게시물을 내리는 동작과는 별개입니다.'
+      hide: '공개 목록과 새 공유에서 내립니다. 파일은 남겨 두며 원래 공개 기간이 끝나기 전에 다시 공개할 수 있습니다.',
+      restore: '원래 공개 기간이 남아 있을 때만 다시 공개합니다. 공개 종료 시각은 늘어나지 않습니다.',
+      delete: '공개와 새 공유를 차단하고 사진·영상 파일 삭제를 진행합니다. 관리 화면에서 되돌릴 수 없고 이미 받은 화면이나 파일까지 회수할 수는 없습니다.',
+      resolve: item.postStatus === 'published' ? '현재 공개 상태를 유지하고 이 신고만 처리 완료로 옮깁니다. 게시물을 비공개로 바꾸거나 삭제하지 않습니다.' : '현재 게시물 상태를 유지하고 이 신고만 처리 완료로 옮깁니다. 게시물을 다시 공개하지 않습니다.'
     };
-    el('dialogTitle').textContent = titles[action]; el('dialogDescription').textContent = descriptions[action];
+    el('dialogTitle').textContent = titles[action]; el('dialogDescription').textContent = descriptions[action] + (reportId ? ' 게시물 조치가 확인된 뒤 이 신고도 처리 완료로 옮깁니다.' : '');
     el('reviewReason').value = ''; el('reasonCount').textContent = '0'; el('dialogError').hidden = true;
-    el('reasonRequirement').textContent = ['reject', 'unpublish'].includes(action) ? '(필수)' : '(선택)';
-    el('dialogConfirm').textContent = {approve: '승인·공개', reject: '거절', unpublish: '즉시 내리기', resolve: '처리 완료'}[action];
-    el('dialogConfirm').className = ['reject', 'unpublish'].includes(action) ? 'danger' : 'primary';
+    el('reasonRequirement').textContent = ['hide', 'delete'].includes(action) ? '(필수)' : '(선택)';
+    el('deleteConfirmationField').hidden = action !== 'delete';
+    el('deleteConfirmation').checked = false;
+    el('deleteConfirmation').required = action === 'delete';
+    el('dialogConfirm').textContent = {approve: '승인·공개', hide: '비공개 전환', restore: '다시 공개', delete: '삭제 실행', resolve: '신고 처리 완료'}[action];
+    el('dialogConfirm').className = action === 'delete' ? 'danger' : 'primary';
     el('dialogConfirm').disabled = false; el('dialogCancel').disabled = false; el('reviewReason').disabled = false;
+    el('deleteConfirmation').disabled = false;
     el('reviewDialog').showModal(); el('reviewReason').focus();
   }
   async function submitReview(event) {
     event.preventDefault();
     const modal = state.modal;
     if (!modal || state.busy || !state.authorized || modal.epoch !== state.authEpoch) return;
-    const reason = reviewReason(el('reviewReason').value, ['reject', 'unpublish'].includes(modal.action));
+    const reason = reviewReason(el('reviewReason').value, ['hide', 'delete'].includes(modal.action));
     if (!reason.valid) { el('dialogError').textContent = reason.message; el('dialogError').hidden = false; return; }
+    if (modal.action === 'delete' && !el('deleteConfirmation').checked) {
+      el('dialogError').textContent = '삭제 내용을 확인하고 확인란을 선택해 주세요.'; el('dialogError').hidden = false; return;
+    }
     if (modal.action === 'approve' && !canApprove(state.config, modal.item, now())) {
       el('dialogError').textContent = '공개 기간 또는 운영 상태를 새로고침해 주세요.'; el('dialogError').hidden = false; return;
     }
+    if (modal.action === 'restore' && !canRestore(state.config, modal.item, now())) {
+      el('dialogError').textContent = '공개 기간 또는 운영 상태가 바뀌었습니다. 새로고침해 주세요.'; el('dialogError').hidden = false; return;
+    }
     state.busy = true; controls();
-    for (const id of ['dialogConfirm', 'dialogCancel', 'reviewReason']) el(id).disabled = true;
+    for (const id of ['dialogConfirm', 'dialogCancel', 'reviewReason', 'deleteConfirmation']) el(id).disabled = true;
     el('dialogConfirm').textContent = '처리 중…';
+    let postChanged = false, filesPending = false;
     try {
-      const result = modal.action === 'resolve'
-        ? await api.resolve({reportId: modal.item.id || modal.item.reportId, resolutionNote: reason.text})
-        : await api.moderate({postId: modal.item.id, decision: modal.action, reason: reason.text,
+      if (modal.action !== 'resolve') {
+        const result = await api.moderate({postId: modal.item.id, decision: modal.action, reason: reason.text,
           ...(modal.item.status ? {expectedStatus: modal.item.status} : {})});
-      if (result?.ok !== true || (modal.action !== 'resolve' &&
-          result.status !== (modal.action === 'approve' ? 'published' : 'rejected'))) throw new Error('unconfirmed response');
-      if (modal.epoch !== state.authEpoch) return;
+        if (modal.epoch !== state.authEpoch || !state.authorized) return;
+        const expected = {approve: 'published', restore: 'published', hide: 'hidden', delete: 'deleted'}[modal.action];
+        if (result?.ok !== true || result.status !== expected) throw new Error('unconfirmed response');
+        postChanged = true;
+        filesPending = modal.action === 'delete' && result.filesPending === true;
+        clearPreviews('게시물 상태가 변경되어 미디어 표시를 종료했어요.');
+      }
+      if (modal.action === 'resolve' || modal.reportId) {
+        const resolutionNote = modal.action === 'resolve' ? reason.text :
+          (modal.action === 'hide' ? '비공개 전환: ' : '삭제: ') + reason.text;
+        const result = await api.resolve({reportId: modal.reportId || modal.item.id || modal.item.reportId, resolutionNote});
+        if (modal.epoch !== state.authEpoch || !state.authorized) return;
+        if (result?.ok !== true) throw new Error('unconfirmed response');
+      }
+      if (modal.epoch !== state.authEpoch || !state.authorized) return;
       clearPreviews('처리가 완료되어 미디어 표시를 종료했어요.');
       state.busy = false; closeDialog();
       await loadItems();
-      el('pageStatus').textContent = '처리 결과를 저장하고 목록을 새로 불러왔습니다.';
+      if (modal.epoch !== state.authEpoch || !state.authorized) return;
+      el('pageStatus').textContent = filesPending
+        ? '게시물 공개 차단을 저장했습니다. 파일 삭제는 재시도 중이며 신고 처리 결과는 새 목록에서 확인할 수 있습니다.'
+        : '처리 결과를 저장하고 목록을 새로 불러왔습니다.';
     } catch (error) {
       if (modal.epoch === state.authEpoch) {
         state.busy = false; closeDialog(); handleError(error);
         if (state.authorized) await loadItems();
-        setError(errorMessage(error));
+        if (modal.epoch !== state.authEpoch) return;
+        setError(postChanged && modal.reportId
+          ? (modal.action === 'hide' ? '게시물 비공개 전환은 완료됐지만' : '게시물 삭제의 공개 차단은 완료됐지만') + ' 신고 처리 완료를 저장하지 못했습니다. ' + (filesPending ? '파일 삭제도 재시도 중입니다. ' : '') + '현재 게시 상태를 확인하고 신고 처리를 다시 완료해 주세요.'
+          : errorMessage(error));
       }
     } finally {
       if (modal.epoch === state.authEpoch) { state.busy = false; controls(); }
     }
   }
+  function viewControls() {
+    for (const [id, active] of [['postsTab', state.view === 'posts'], ['reportsTab', state.view === 'reports']]) {
+      el(id).classList.toggle('selected', active); el(id).setAttribute('aria-pressed', String(active));
+    }
+    el('postFilterField').hidden = state.view !== 'posts'; el('reportFilterField').hidden = state.view !== 'reports';
+  }
   function setView(view) {
     if (state.busy || !state.authorized) return;
     state.view = view;
-    for (const [id, active] of [['postsTab', view === 'posts'], ['reportsTab', view === 'reports']]) {
-      el(id).classList.toggle('selected', active); el(id).setAttribute('aria-pressed', String(active));
-    }
-    el('postFilterField').hidden = view !== 'posts'; el('reportFilterField').hidden = view !== 'reports';
+    viewControls();
     void loadItems();
   }
   el('postsTab').addEventListener('click', () => setView('posts'));
@@ -397,6 +460,7 @@ export function mountCommunityAdmin({api, auth, onAuthStateChanged, login, logou
   doc.addEventListener('visibilitychange', () => { if (doc.hidden) clearPreviews('화면을 벗어나 미디어 표시를 종료했어요. 다시 확인해 주세요.'); });
   const unsubscribe = onAuthStateChanged(auth, user => {
     state.authEpoch++; state.user = user; state.busy = false;
+    state.view = 'reports'; el('reportStatus').value = 'open'; viewControls();
     lock(); setError('');
     if (user) void verify();
   });
