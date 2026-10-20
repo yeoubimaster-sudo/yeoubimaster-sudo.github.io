@@ -26,15 +26,17 @@
       <button id="loginButton" class="primary" type="button">Google 관리자 로그인</button>
       <button id="verifyButton" class="secondary" type="button" hidden>관리 권한 다시 확인</button>
     </section>
-    <section id="workspace" hidden aria-label="현장 소식 신고 관리">
+    <section id="workspace" hidden aria-label="현장 소식 관리 작업공간">
       <div id="featureNotice" class="notice" role="status"></div>
       <div class="workspace-toolbar">
         <div class="view-switch" aria-label="관리 항목">
           <button id="reportsTab" type="button" class="selected" aria-pressed="true">신고 관리</button>
           <button id="postsTab" type="button" aria-pressed="false">게시물 조회</button>
+          <button id="operationsTab" type="button" aria-pressed="false">운영현황</button>
         </div>
         <button id="refreshButton" class="secondary" type="button">새로고침</button>
       </div>
+      <section id="moderationView" aria-label="신고와 게시물 목록">
       <div class="list-toolbar">
         <div><h2 id="listHeading">미처리 신고</h2><p id="listStatus" class="muted" role="status" aria-live="polite"></p></div>
         <label id="postFilterField" class="filter-field" hidden>게시물 상태
@@ -58,6 +60,13 @@
       <div id="items" class="items" aria-busy="false"></div>
       <div id="emptyState" class="empty-state" hidden><h3>표시할 항목이 없어요</h3><p>다른 상태를 선택하거나 새로고침해 주세요.</p></div>
       <div class="load-more"><button id="loadMoreButton" class="secondary" type="button" hidden>더 불러오기</button></div>
+      </section>
+      <section id="operationsView" class="operations-view" hidden aria-labelledby="operationsHeading">
+        <div class="operations-heading"><div class="eyebrow">현장 소식 운영</div><h2 id="operationsHeading">운영현황</h2>
+          <p id="operationsStatus" class="muted" role="status" aria-live="polite"></p></div>
+        <div id="operationsNotice" class="notice" role="status" hidden></div>
+        <div id="operationsContent" aria-busy="false"></div>
+      </section>
     </section>
     <noscript><p class="notice error">관리자 도구를 이용하려면 JavaScript를 켜 주세요.</p></noscript>
   </main>
