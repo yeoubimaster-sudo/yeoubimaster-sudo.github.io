@@ -358,6 +358,9 @@ export function mountCommunityAdmin({api, auth, onAuthStateChanged, login, logou
     el('dialogConfirm').className = action === 'delete' ? 'danger' : 'primary';
     el('dialogConfirm').disabled = false; el('dialogCancel').disabled = false; el('reviewReason').disabled = false;
     el('deleteConfirmation').disabled = false;
+    el('contributionRevocationField').hidden = action !== 'delete';
+    el('contributionRevocation').checked = false;
+    el('contributionRevocation').disabled = false;
     el('reviewDialog').showModal(); el('reviewReason').focus();
   }
   async function submitReview(event) {
@@ -376,13 +379,14 @@ export function mountCommunityAdmin({api, auth, onAuthStateChanged, login, logou
       el('dialogError').textContent = '공개 기간 또는 운영 상태가 바뀌었습니다. 새로고침해 주세요.'; el('dialogError').hidden = false; return;
     }
     state.busy = true; controls();
-    for (const id of ['dialogConfirm', 'dialogCancel', 'reviewReason', 'deleteConfirmation']) el(id).disabled = true;
+    for (const id of ['dialogConfirm', 'dialogCancel', 'reviewReason', 'deleteConfirmation', 'contributionRevocation']) el(id).disabled = true;
     el('dialogConfirm').textContent = '처리 중…';
     let postChanged = false, filesPending = false;
     try {
       if (modal.action !== 'resolve') {
         const result = await api.moderate({postId: modal.item.id, decision: modal.action, reason: reason.text,
-          ...(modal.item.status ? {expectedStatus: modal.item.status} : {})});
+          ...(modal.item.status ? {expectedStatus: modal.item.status} : {}),
+          ...(modal.action === 'delete' && el('contributionRevocation').checked ? {revokeContribution: true} : {})});
         if (modal.epoch !== state.authEpoch || !state.authorized) return;
         const expected = {approve: 'published', restore: 'published', hide: 'hidden', delete: 'deleted'}[modal.action];
         if (result?.ok !== true || result.status !== expected) throw new Error('unconfirmed response');
