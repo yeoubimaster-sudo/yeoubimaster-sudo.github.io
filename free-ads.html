@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>무료 전국 광고 관리 · 보는날씨</title><link rel="stylesheet" href="./free-ads.css"></head>
+<body><header><div><a href="./admin.html">← 광고 관리</a><h1>무료 전국 광고</h1><p>전국에 같은 비중으로 순환 · 종료일 없음 · 언제든 중지</p></div><button id="logout" hidden>로그아웃</button></header>
+<main><section id="loginPanel" class="panel"><h2>관리자 로그인</h2><p>등록된 관리자 계정으로 광고를 관리합니다.</p><button id="login" class="primary">Google 계정으로 로그인</button></section>
+<p id="notice" role="status" aria-live="polite"></p>
+<div id="workspace" hidden>
+<section class="panel"><div class="heading"><h2>등록한 광고 <span id="count"></span></h2><div><button id="reload">새로고침</button><button id="new" class="primary">광고 추가</button></div></div>
+<p class="hint">게시한 광고는 업데이트된 앱의 전국 무료 배너에 표시됩니다. 기존 유료 광고 배정은 유지합니다. 무료 광고끼리는 보이는 시간 30초마다 순환합니다.</p>
+<div id="list" class="list"></div><p id="empty">등록한 광고가 없습니다. 광고 추가를 눌러 시작하세요.</p></section>
+<section id="editor" class="panel" hidden><div class="heading"><h2 id="editorHeading">광고 작성</h2><span>무료 · 청구 0원</span></div>
+<div class="editor-grid"><form id="form">
+<label>업체명 <input id="title" required maxlength="40" autocomplete="organization" placeholder="업체명을 입력하세요"></label>
+<label>문구 <textarea id="body" maxlength="80" rows="3" placeholder="받아 둔 광고 문구를 입력하세요"></textarea></label>
+<label>연결 링크 <input id="link" maxlength="1000" inputmode="url" placeholder="https://… 또는 example.com"></label><p class="hint">링크는 선택 사항입니다. 있으면 배너를 눌렀을 때 외부 페이지로 이동합니다.</p>
+<label>사진·배너 <input id="photo" type="file" accept="image/jpeg,image/png,image/webp"></label>
+<div class="inline"><button id="removePhoto" type="button">사진 빼기</button><label>사진 표시 <select id="fit"><option value="contain">전체 보기 — 배너·로고</option><option value="cover">꽉 채우기 — 사진</option></select></label></div>
+<p class="hint">JPG·PNG·WebP, 최대 10MB. 긴 쪽 1,200px로 줄여 저장합니다. 사진이 없으면 업체명과 문구로 표시합니다.</p>
+<div class="actions"><button id="draft" type="button">임시 저장</button><button id="publish" type="submit" class="primary">게시하기</button><button id="pause" type="button">중지하고 저장</button></div>
+<p class="hint">게시·수정·중지는 앱에 자동 반영됩니다. 연결이 끊긴 앱은 다음 확인 때 무료 광고를 숨깁니다. 삭제 대신 중지하면 기록을 보존할 수 있습니다.</p>
+</form><aside><h3>앱 배너 미리보기</h3><div class="preview"><div id="previewImage"><span id="poster"></span><img id="image" alt="광고 이미지" hidden></div><div class="preview-copy"><div class="preview-title"><small>광고</small><strong id="previewTitle">업체명</strong><span id="arrow" hidden>↗</span></div><p id="previewBody"></p></div></div><p class="hint">화면 너비·글자 크기에 따라 일부 문구가 줄어들 수 있습니다.</p></aside></div></section>
+<section class="panel"><div class="heading"><h2>광고 성과</h2><div><select id="days" aria-label="집계 기간"><option value="1">오늘</option><option value="7" selected>최근 7일</option><option value="30">최근 30일</option></select><button id="reportRefresh">조회</button></div></div>
+<p class="hint">배너가 화면에 절반 이상 연속 1초 보이면 노출 1회, 연결 페이지 열기에 성공하면 클릭 1회입니다. 통계를 끈 사용자는 제외됩니다. 클릭률은 노출 조건을 충족한 클릭 ÷ 노출이며, 고유 사용자 수·매출·유료 광고 실적이 아닙니다.</p>
+<div class="table-wrap"><table><thead><tr><th>업체</th><th>노출</th><th>클릭</th><th>클릭률</th></tr></thead><tbody id="report"></tbody></table></div><p id="reportStatus" role="status">조회하면 실제 집계를 확인할 수 있습니다.</p></section>
+</div></main><script type="module">
+import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
+import {getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
+import {getFunctions, httpsCallable} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-functions.js';
+import {mountFreeAds} from './free-ads.js';
+const app = initializeApp({apiKey:'AIzaSyB42uqx7kLei3dE3uLZBUNQgP_uLAzuFkQ',authDomain:'horizon-4be45.firebaseapp.com',projectId:'horizon-4be45',storageBucket:'horizon-4be45.firebasestorage.app',appId:'1:955109054720:web:2b155899d4e14efa377be5'});
+const auth = getAuth(app), rpc = httpsCallable(getFunctions(app,'asia-northeast3'),'manageFreeAds',{timeout:60000});
+const ui = mountFreeAds({call:async data=>(await rpc(data)).data});
+document.getElementById('login').onclick=async()=>{try{await signInWithPopup(auth,new GoogleAuthProvider());}catch(_){ui.message('로그인하지 못했습니다. 다시 시도해 주세요.');}};
+document.getElementById('logout').onclick=()=>signOut(auth);
+onAuthStateChanged(auth,user=>ui.setUser(user?.email?.toLowerCase()==='yeoubi.master@gmail.com' && user.emailVerified));
+</script></body></html>
