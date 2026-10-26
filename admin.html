@@ -397,8 +397,8 @@
         grid-template-columns: 105px 1fr;
       }
     }
-    #discoveryReport th, #discoveryReport td { padding: 10px 6px; border-bottom: 1px solid #edf2f7; }
-    #discoveryReport select { padding: 8px; border: 1px solid #cbdde8; border-radius: 8px; background: #fff; color: #173d50; }
+    #businessReport th, #businessReport td, #discoveryReport th, #discoveryReport td { padding: 10px 6px; border-bottom: 1px solid #edf2f7; }
+    #businessReport select, #discoveryReport select { padding: 8px; border: 1px solid #cbdde8; border-radius: 8px; background: #fff; color: #173d50; }
   </style>
 </head>
 
@@ -437,9 +437,33 @@
 
     <div id="errorBox"></div>
 
+    <section class="card" id="businessReport" style="margin-bottom:24px" aria-labelledby="businessHeading">
+      <h2 id="businessHeading" style="margin-top:0">업체 광고 성과</h2>
+      <p>등록한 전국 광고의 업체별 노출과 클릭입니다. <a href="./free-ads.html">광고 등록·수정·중지 →</a></p>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center">
+        <label>기간 <select id="businessDays"><option value="1">오늘</option><option value="7" selected>최근 7일</option><option value="30">최근 30일</option></select></label>
+        <button id="businessRefresh" class="ghost" disabled>성과 새로고침</button>
+        <span>노출 <strong id="businessImpressions">—</strong></span>
+        <span>클릭 <strong id="businessClicks">—</strong></span>
+        <span>클릭률(CTR) <strong id="businessCtr">—</strong></span>
+        <span>노출 기준 충족 클릭 <strong id="businessViewableClicks">—</strong></span>
+      </div>
+      <p style="font-size:13px;color:#516779;line-height:1.7">노출은 배너의 절반 이상이 화면에 연속 1초 보인 횟수입니다. 클릭은 연결 페이지 열기에 성공한 횟수이며, 이 화면의 CTR은 노출 기준을 충족한 클릭 ÷ 노출 × 100입니다. 빠르게 눌러 노출 기준을 채우지 않은 클릭도 전체 클릭 수에는 포함되므로, 전체 클릭 ÷ 노출과 다를 수 있습니다. 통계 전송을 끈 이용자는 제외되며 사람 수·구매 건수를 뜻하지 않습니다.</p>
+      <div style="overflow-x:auto">
+        <table style="width:100%;min-width:760px;text-align:left;border-collapse:collapse;font-size:13px" aria-label="업체별 광고 성과">
+          <thead><tr><th>업체</th><th>현재 상태</th><th>운영 기간</th><th>노출</th><th>전체 클릭</th><th>노출 기준 충족 클릭</th><th>CTR</th></tr></thead>
+          <tbody id="businessRows"></tbody>
+        </table>
+      </div>
+      <p id="businessEmpty" hidden>등록한 업체 광고와 집계가 없습니다.</p>
+      <p id="businessStatus" role="status" style="font-size:12px;color:#516779">관리자 로그인 후 확인할 수 있습니다.</p>
+      <p style="font-size:12px;color:#516779">노출이 없는 업체도 0으로 표시합니다. 상태는 현재 기준이며, 운영 기간은 선택한 통계 조회 기간과 별개입니다. 캠핑장·축제 소식과 유료 광고 실적은 이 표에 합산하지 않습니다.</p>
+    </section>
+    <details style="margin-bottom:24px">
+      <summary style="cursor:pointer;padding:12px;font-weight:600">캠핑장·축제·관광지 소식 통계 따로 보기</summary>
     <section class="card" id="discoveryReport" style="margin-bottom:24px" aria-labelledby="discoveryHeading">
-      <h2 id="discoveryHeading" style="margin-top:0">지역소식 광고 성과</h2>
-      <p>캠핑장 · 축제 · 관광지와 보는날씨 자체 광고의 실제 이용 기록입니다. <b>청구 금액 0원</b>이며 유료 광고 실적에 포함하지 않습니다.</p>
+      <h2 id="discoveryHeading" style="margin-top:0">캠핑장·축제·관광지 소식 통계</h2>
+      <p>업체 광고 성과와 별도로 집계하는 지역소식 배너입니다. 유료 광고 배정과 게시 중인 업체 배너가 없거나, 업체 배너를 불러오기 전·통신 실패 때 표시될 수 있습니다. 조회 기간에는 예전 앱에서 보인 기록도 포함될 수 있습니다. 업체별 성과는 위 표를 확인하세요.</p>
       <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center">
         <label>기간 <select id="discoveryDays"><option value="1">오늘</option><option value="7" selected>최근 7일</option><option value="30">최근 30일</option></select></label>
         <button id="discoveryRefresh" class="ghost">성과 새로고침</button>
@@ -451,7 +475,7 @@
       <p id="discoveryApi" style="font-weight:600"></p>
       <p style="font-size:12px;color:#516779">위 호출 상한은 광고용 서버에만 적용됩니다. 기존 지도 기능의 호출은 별도이며 공공데이터 계정의 전체 잔여량을 나타내지 않습니다. 서버 저장소와 Firebase 집계 이용료는 발생할 수 있습니다.</p>
       <div style="overflow-x:auto">
-        <table style="width:100%;text-align:left;border-collapse:collapse;font-size:13px" aria-label="날짜별 지역소식 광고 성과">
+        <table style="width:100%;text-align:left;border-collapse:collapse;font-size:13px" aria-label="날짜별 캠핑장·축제·관광지 소식 통계">
           <thead><tr><th>날짜</th><th>종류</th><th>소식</th><th>노출</th><th>클릭</th><th>클릭률</th></tr></thead>
           <tbody id="discoveryRows"></tbody>
         </table>
@@ -464,6 +488,7 @@
         <button id="discoverySave" class="ghost" disabled>설정 저장</button>
       </div>
     </section>
+    </details>
 
     <div class="toolbar">
       <div class="filters">
@@ -505,6 +530,7 @@
 
 <script type="module">
   import {mountDiscoveryReport} from './discovery-admin.js';
+  import {mountBusinessReport} from './free-ad-report.js';
   import {
     initializeApp
   } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
@@ -538,6 +564,8 @@
   const auth = getAuth(app);
   const functions = getFunctions(app, "asia-northeast3");
   const discoveryReport = mountDiscoveryReport(functions, httpsCallable);
+  const freeAdReportCall = httpsCallable(functions, 'manageFreeAds');
+  const businessReport = mountBusinessReport({call: async data => (await freeAdReportCall(data)).data});
 
   const listApplications =
     httpsCallable(functions, "listAdApplications");
@@ -1286,6 +1314,7 @@
     .addEventListener("click", () => signOut(auth));
 
   onAuthStateChanged(auth, async user => {
+    void businessReport.setUser(!!user && user.emailVerified && user.email?.toLowerCase() === ADMIN_EMAIL);
 
     if (!user) {
       loginBox.style.display = "block";
