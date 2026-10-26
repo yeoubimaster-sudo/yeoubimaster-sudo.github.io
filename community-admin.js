@@ -467,6 +467,15 @@ export function mountCommunityAdmin({api, auth, onAuthStateChanged, login, logou
     const status = item.status || item.state || 'open';
     const {card, body, actions} = cardShell(item, status, REPORT_LABELS[item.reason] || '신고 내용 확인');
     body.append(text('p', item.details || '추가 설명 없음', 'report-details'));
+    if (item.commentId) {
+      body.append(text('p', item.commentBody || '삭제되었거나 공개가 끝난 댓글입니다.', 'comment-body'));
+      body.append(metadata([['댓글 신고', date(item.createdAtMs)], ['댓글 ID', item.commentId.slice(0, 12)]]));
+      if (status === 'open') {
+        actions.append(button('신고 처리 완료', 'primary', () => openReview('resolve', item)));
+        if (item.commentBody) actions.append(button('댓글 삭제', 'danger', () => openReview('comment-delete', item, item.id || item.reportId)));
+      }
+      return card;
+    }
     body.append(metadata([['신고 접수', date(item.createdAtMs)],
       ['게시물', String(item.postId || '').slice(0, 12)], ['현재 게시 상태', statusLabel(item.postStatus)],
       ...(status === 'resolved' ? [['검토 메모', item.resolutionNote || '—']] : [])]));
@@ -518,21 +527,22 @@ export function mountCommunityAdmin({api, auth, onAuthStateChanged, login, logou
     if (action === 'approve' && !canApprove(state.config, item, now())) return;
     if (action === 'restore' && !canRestore(state.config, item, now())) return;
     state.modal = {action, item, reportId, epoch: state.authEpoch};
-    const titles = {approve: '게시물을 공개할까요?', hide: '게시물을 비공개로 바꿀까요?', restore: '게시물을 다시 공개할까요?', delete: '게시물과 미디어를 삭제할까요?', resolve: '이 신고를 처리 완료할까요?'};
+    const titles = {'comment-delete': '이 댓글을 삭제할까요?', approve: '게시물을 공개할까요?', hide: '게시물을 비공개로 바꿀까요?', restore: '게시물을 다시 공개할까요?', delete: '게시물과 미디어를 삭제할까요?', resolve: '이 신고를 처리 완료할까요?'};
     const descriptions = {
       approve: '사진·영상과 설명을 검토한 후 승인해 주세요. 공개 기간이 남아 있을 때만 공개됩니다.',
       hide: '공개 목록과 새 공유에서 내립니다. 파일은 남겨 두며 원래 공개 기간이 끝나기 전에 다시 공개할 수 있습니다.',
       restore: '원래 공개 기간이 남아 있을 때만 다시 공개합니다. 공개 종료 시각은 늘어나지 않습니다.',
       delete: '공개와 새 공유를 차단하고 사진·영상 파일 삭제를 진행합니다. 관리 화면에서 되돌릴 수 없고 이미 받은 화면이나 파일까지 회수할 수는 없습니다.',
+      'comment-delete': '이 댓글의 내용만 삭제합니다. 게시물과 다른 댓글은 유지됩니다.',
       resolve: item.postStatus === 'published' ? '현재 공개 상태를 유지하고 이 신고만 처리 완료로 옮깁니다. 게시물을 비공개로 바꾸거나 삭제하지 않습니다.' : '현재 게시물 상태를 유지하고 이 신고만 처리 완료로 옮깁니다. 게시물을 다시 공개하지 않습니다.'
     };
     el('dialogTitle').textContent = titles[action]; el('dialogDescription').textContent = descriptions[action] + (reportId ? ' 게시물 조치가 확인된 뒤 이 신고도 처리 완료로 옮깁니다.' : '');
     el('reviewReason').value = ''; el('reasonCount').textContent = '0'; el('dialogError').hidden = true;
-    el('reasonRequirement').textContent = ['hide', 'delete'].includes(action) ? '(필수)' : '(선택)';
+    el('reasonRequirement').textContent = ['hide', 'delete', 'comment-delete'].includes(action) ? '(필수)' : '(선택)';
     el('deleteConfirmationField').hidden = action !== 'delete';
     el('deleteConfirmation').checked = false;
     el('deleteConfirmation').required = action === 'delete';
-    el('dialogConfirm').textContent = {approve: '승인·공개', hide: '비공개 전환', restore: '다시 공개', delete: '삭제 실행', resolve: '신고 처리 완료'}[action];
+    el('dialogConfirm').textContent = {'comment-delete': '댓글 삭제', approve: '승인·공개', hide: '비공개 전환', restore: '다시 공개', delete: '삭제 실행', resolve: '신고 처리 완료'}[action];
     el('dialogConfirm').className = action === 'delete' ? 'danger' : 'primary';
     el('dialogConfirm').disabled = false; el('dialogCancel').disabled = false; el('reviewReason').disabled = false;
     el('deleteConfirmation').disabled = false;
@@ -545,7 +555,7 @@ export function mountCommunityAdmin({api, auth, onAuthStateChanged, login, logou
     event.preventDefault();
     const modal = state.modal;
     if (!modal || state.busy || !state.authorized || modal.epoch !== state.authEpoch) return;
-    const reason = reviewReason(el('reviewReason').value, ['hide', 'delete'].includes(modal.action));
+    const reason = reviewReason(el('reviewReason').value, ['hide', 'delete', 'comment-delete'].includes(modal.action));
     if (!reason.valid) { el('dialogError').textContent = reason.message; el('dialogError').hidden = false; return; }
     if (modal.action === 'delete' && !el('deleteConfirmation').checked) {
       el('dialogError').textContent = '삭제 내용을 확인하고 확인란을 선택해 주세요.'; el('dialogError').hidden = false; return;
@@ -561,7 +571,11 @@ export function mountCommunityAdmin({api, auth, onAuthStateChanged, login, logou
     el('dialogConfirm').textContent = '처리 중…';
     let postChanged = false, filesPending = false;
     try {
-      if (modal.action !== 'resolve') {
+      if (modal.action === 'comment-delete') {
+        const result = await api.deleteComment({commentId: modal.item.commentId, expectedUid: state.user.uid});
+        if (modal.epoch !== state.authEpoch || !state.authorized) return;
+        if (result?.ok !== true) throw new Error('unconfirmed response');
+      } else if (modal.action !== 'resolve') {
         const result = await api.moderate({postId: modal.item.id, decision: modal.action, reason: reason.text,
           ...(modal.item.status ? {expectedStatus: modal.item.status} : {}),
           ...(modal.action === 'delete' && el('contributionRevocation').checked ? {revokeContribution: true} : {})});
@@ -667,7 +681,7 @@ async function startFirebase() {
     login: () => authSdk.signInWithPopup(auth, provider), logout: () => authSdk.signOut(auth),
     api: {overview: callable('communityAdminOverview'), list: callable('communityAdminList'),
       reports: callable('communityAdminReports'), operations: callable('communityAdminOperations'), media: callable('communityAdminMedia'),
-      moderate: callable('communityModeratePost'), resolve: callable('communityAdminResolveReport')}});
+      deleteComment: callable('communityDeleteComment'), moderate: callable('communityModeratePost'), resolve: callable('communityAdminResolveReport')}});
 }
 
 if (typeof document !== 'undefined' && document.getElementById('community-admin-root')) {
