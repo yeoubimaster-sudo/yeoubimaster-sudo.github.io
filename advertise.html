@@ -524,6 +524,7 @@
   const previewBody = document.getElementById("previewBody");
 
   let currentProductId = "";
+  let launchPromotion = false;
   let currentImageUrl = "";
   let currentStatus = "";
 
@@ -893,11 +894,12 @@
       const data = result.data;
 
       currentProductId = data.productId || "";
+      launchPromotion = data.campaignType === "launch_promotion";
       currentStatus = data.reviewStatus || "";
       currentImageUrl = data.imageUrl || "";
 
       product.textContent =
-        productNames[currentProductId] || currentProductId;
+        (launchPromotion ? "출시 프로모션 · 전국 7일 · 10,000원 (실제 게시일부터)" : productNames[currentProductId]) || currentProductId;
 
       if (isNational()) {
         // 전국 광고 결제자는 전국으로 자동 고정
@@ -906,7 +908,7 @@
 
         // 전국 자리(2개)가 다 찼는지 미리 알려준다.
         // 제출 버튼을 눌러서야 거절당하는 것보다 낫다.
-        loadAvailability("").then(() => {
+        if (!launchPromotion) loadAvailability("").then(() => {
           if (!availability || !availability.national) return;
           if (!availability.national.full) return;
 

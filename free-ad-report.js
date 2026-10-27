@@ -5,8 +5,8 @@ export function businessReport(items, dailyRows) {
   const rows = new Map();
   for (const item of items) {
     if (typeof item.id !== 'string') continue;
-    rows.set(item.id, {id: item.id, title: item.title || '이름 없음', status: names[item.status] || '확인 필요',
-      period: '종료일 없음', impressions: 0, clicks: 0, viewableClicks: 0});
+    rows.set(item.id, {id: item.id, title: item.title || '이름 없음', status: item.endAtMs && item.endAtMs <= Date.now() ? '기간 종료' : names[item.status] || '확인 필요',
+      period: item.promotionOrderId ? (item.endAtMs ? new Date(item.endAtMs).toLocaleString('ko-KR', {timeZone:'Asia/Seoul'}) + ' 종료' : '첫 게시일부터 7일') : '종료일 없음', impressions: 0, clicks: 0, viewableClicks: 0});
   }
   for (const row of dailyRows) {
     if (typeof row.creativeId !== 'string') continue;

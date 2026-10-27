@@ -42,3 +42,9 @@ test('untrusted advertiser text is assigned as text, not HTML',async()=>{
  const root=new Root();const ui=mountBusinessReport({root,call:async data=>data.action==='list'?{items:[{id:'a',title:'<img onerror=bad()>',status:'draft'}]}:report});
  await ui.setUser(true);assert.equal(root.getElementById('businessRows').children[0].children[0].textContent,'<img onerror=bad()>');
 });
+
+test('prepaid campaigns show their seven-day period while free campaigns keep no end date',()=>{
+ const rows=businessReport([{id:'paid',title:'유료',promotionOrderId:'order',status:'published',endAtMs:1},{id:'draft',promotionOrderId:'next',status:'draft'},{id:'free',status:'published'}],[]);
+ assert.equal(rows[0].status,'기간 종료');assert.match(rows[0].period,/종료/);
+ assert.equal(rows[1].period,'첫 게시일부터 7일');assert.equal(rows[2].period,'종료일 없음');
+});

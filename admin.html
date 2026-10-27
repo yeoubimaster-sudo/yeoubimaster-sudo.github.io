@@ -408,7 +408,7 @@
   <div class="header-inner">
     <div>
       <h1>보는날씨 광고 관리</h1>
-      <a href="./free-ads.html" style="display:inline-block;margin-top:8px;font-size:14px;color:#24619b;font-weight:700">무료 전국 광고 등록·수정·중지 →</a>
+      <a href="./free-ads.html" style="display:inline-block;margin-top:8px;font-size:14px;color:#24619b;font-weight:700">전국 광고 등록·수정·중지 →</a>
       <div class="sub">광고·홍보 신청 심사 및 게시 관리</div>
       <a href="./community-admin.html" style="display:inline-block;margin-top:8px;font-size:13px;color:#24619b;">현장 사진·영상 검수 및 신고 관리 →</a>
     </div>
@@ -530,7 +530,7 @@
 
 <script type="module">
   import {mountDiscoveryReport} from './discovery-admin.js';
-  import {mountBusinessReport} from './free-ad-report.js';
+  import {mountBusinessReport} from './free-ad-report.js?v=20261027';
   import {
     initializeApp
   } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
@@ -876,7 +876,9 @@
         `;
       }
 
-      const actions =
+      const promotionAction = item.campaignType === 'launch_promotion'
+        ? `<div class="actions"><a href="./free-ads.html?orderId=${encodeURIComponent(item.orderId)}">전국 광고 관리에서 직접 등록</a><p>신청번호: ${esc(item.orderId)}</p>${item.reviewStatus === 'pending' ? `<button class="revision" data-action="revision" data-id="${esc(item.orderId)}">수정요청</button><button class="reject" data-action="reject" data-id="${esc(item.orderId)}">거절</button>` : ''}</div>` : '';
+      const actions = promotionAction || (
         item.reviewStatus === "pending"
           ? `
             <div class="actions">
@@ -899,7 +901,7 @@
               </button>
             </div>
           `
-          : "";
+          : "");
 
       // ── 「게시 내리기」 버튼 (2026-09-08 추가) ────────────────
       //
@@ -907,7 +909,7 @@
       // 게시중(active)일 때만 나온다. 서버도 같은 조건으로 막는다.
       // (ad_system.js takeDownAd: reviewStatus !== "active" 면 거부)
       const takeDownBox =
-        item.reviewStatus === "active"
+        item.reviewStatus === "active" && item.campaignType !== "launch_promotion"
           ? `
             <div class="actions">
               <button class="takedown"

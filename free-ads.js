@@ -38,20 +38,22 @@ export function mountFreeAds({call, root=document, confirmDiscard=()=>window.con
   function edit(item){
     if(busy|| (dirty&&!confirmDiscard()))return;
     clearPhotoUrl();pendingPhoto=null;dirty=false;
-    current=item?{...item}:{id:crypto.randomUUID(),title:'',body:'',linkUrl:'',assetId:'',imageUrl:'',imageFit:'contain',status:'draft'};
+    current=item?{...item}:{promotionOrderId:new URLSearchParams(window.location.search).get('orderId') || '',id:crypto.randomUUID(),title:'',body:'',linkUrl:'',assetId:'',imageUrl:'',imageFit:'contain',status:'draft'};
+    if ($('promotionOrderId')) $('promotionOrderId').value = current.promotionOrderId || '';
     for(const [id,k] of [['title','title'],['body','body'],['link','linkUrl'],['fit','imageFit']])$(id).value=current[k];
     $('photo').value='';$('editor').hidden=false;$('editorHeading').textContent=item?'광고 수정':'광고 작성';
     $('pause').hidden=current.status!=='published';$('publish').textContent=current.status==='published'?'수정하고 게시 유지':'게시하기';
     preview();$('title').focus();
   }
   function render(){
-    $('count').textContent=`${items.length}곳 · 게시 ${items.filter(i=>i.status==='published').length}곳`;
+    $('count').textContent=`${items.length}곳 · 게시 ${items.filter(i=>i.status==='published'&&(!i.endAtMs||i.endAtMs>Date.now())).length}곳`;
     $('list').replaceChildren();$('empty').hidden=items.length>0;
     for(const item of items){
       const row=root.createElement('div');row.className='ad-row';
-      const name=root.createElement('strong');name.textContent=item.title;
-      const badge=root.createElement('span');badge.className=`badge ${item.status==='published'?'live':''}`;badge.textContent=({draft:'임시 저장',published:'게시 중',paused:'중지'})[item.status]||'확인 필요';
+      const name=root.createElement('strong');name.textContent=item.title + (item.promotionOrderId ? ' · 출시 프로모션' : ' · 무료');
+      const badge=root.createElement('span');badge.className=`badge ${item.status==='published'?'live':''}`;badge.textContent=item.endAtMs && item.endAtMs <= Date.now() ? '기간 종료' : ({draft:'임시 저장',published:'게시 중',paused:'중지'})[item.status]||'확인 필요';
       const button=root.createElement('button');button.textContent='수정';button.onclick=()=>edit(item);row.append(name,badge,button);
+      if(item.endAtMs){const end=root.createElement('small');end.textContent=new Date(item.endAtMs).toLocaleString('ko-KR',{timeZone:'Asia/Seoul'})+' 종료';row.append(end);}
       const toggle=root.createElement('button');toggle.textContent=item.status==='published'?'중지':'게시';toggle.onclick=()=>{
         if(dirty&&!confirmDiscard())return;
         void store({...item,status:item.status==='published'?'paused':'published'});
@@ -74,16 +76,16 @@ export function mountFreeAds({call, root=document, confirmDiscard=()=>window.con
   function save(status){
     if(!current||!$('form').reportValidity())return;
     let link;try{link=normalizeLink($('link').value);}catch(e){message(e.message);return;}
-    void store({...current,title:$('title').value.trim(),body:$('body').value.trim(),linkUrl:link,imageFit:$('fit').value,status},pendingPhoto);
+    void store({...current,promotionOrderId:$('promotionOrderId')?.value.trim() || '',title:$('title').value.trim(),body:$('body').value.trim(),linkUrl:link,imageFit:$('fit').value,status},pendingPhoto);
   }
   async function report(){await guarded(async token=>{const data=await call({action:'report',days:Number($('days').value)});if(token!==epoch)return;
     $('report').replaceChildren();const rows=reportTotals(data.rows);
     for(const row of rows){const tr=root.createElement('tr');for(const value of [row.title,row.impressions.toLocaleString(),row.clicks.toLocaleString(),row.impressions?`${(row.viewableClicks/row.impressions*100).toFixed(1)}%`:'—']){const td=root.createElement('td');td.textContent=value;tr.append(td);}$('report').append(tr);}
-    $('reportStatus').textContent=data.truncated?'일부 집계만 표시됩니다. 기간을 줄여 주세요.':rows.length?`최근 ${data.days}일 실제 집계 · 청구 0원`:'아직 집계가 없습니다. 게시한 광고를 업데이트된 앱에서 이용하면 쌓입니다.';
+    $('reportStatus').textContent=data.truncated?'일부 집계만 표시됩니다. 기간을 줄여 주세요.':rows.length?`최근 ${data.days}일 실제 집계 · 추가 노출 요금 없음`:'아직 집계가 없습니다. 게시한 광고를 업데이트된 앱에서 이용하면 쌓입니다.';
   });}
   $('new').onclick=()=>edit(null);$('reload').onclick=()=>{if(!dirty||confirmDiscard()){dirty=false;$('editor').hidden=true;void load();}};
   $('form').onsubmit=e=>{e.preventDefault();save('published');};$('draft').onclick=()=>save('draft');$('pause').onclick=()=>save('paused');
-  for(const id of ['title','body','link','fit'])$(id).addEventListener('input',()=>{dirty=true;preview();});
+  for(const id of ['title','body','link','fit','promotionOrderId'])$(id)?.addEventListener('input',()=>{dirty=true;preview();});
   $('removePhoto').onclick=()=>{clearPhotoUrl();pendingPhoto=null;current.assetId='';current.imageUrl='';$('photo').value='';dirty=true;preview();};
   $('photo').onchange=async()=>{const file=$('photo').files?.[0];if(!file||!current)return;const token=epoch,id=current.id;
     locked(true);try{const encoded=await preparePhoto(file);if(token!==epoch||current?.id!==id)return;clearPhotoUrl();objectUrl=URL.createObjectURL(file);pendingPhoto=encoded;dirty=true;preview();}
