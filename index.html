@@ -4,13 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f1faff">
-  <meta name="description" content="나가기 전에, 날씨를 눈으로 확인하세요. 날씨와 현장 영상, 관광·축제·캠핑·교통 정보, 이웃의 현장 제보를 보는날씨에서 만나보세요.">
+  <meta name="description" content="나가기 전에, 날씨를 눈으로 확인하세요. 날씨와 현장 영상, 주변 정보부터 VAMONOS의 세계 라이브 영상 여행까지. 보는날씨에서 오늘의 바깥을 확인하고 잠깐 쉬어가세요.">
   <meta property="og:title" content="보는날씨 — 오늘의 바깥을 확인하세요">
-  <meta property="og:description" content="여행부터 야외 운동, 매일의 이동까지. 날씨와 현장 영상을 한곳에서 확인하세요.">
+  <meta property="og:description" content="날씨와 현장 영상을 확인하고, VAMONOS에서 세계의 실시간 풍경을 보며 쉬어가세요.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://yeoubi.ai.kr/">
   <meta property="og:image" content="https://yeoubi.ai.kr/assets/bonun-weather-logo.png">
   <title>보는날씨 — 오늘의 바깥을 확인하세요</title>
+  <link rel="canonical" href="https://yeoubi.ai.kr/">
   <link rel="icon" type="image/png" href="assets/bonun-weather-logo.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -31,6 +32,8 @@
     @media(max-width:380px){.wrap{width:calc(100% - 32px)}.brand{font-size:17px}.brand img{width:55px;height:55px}.nav-download{padding:8px 12px}.hero-description br{display:none}.store-links{flex-direction:column;align-items:stretch}.store-link{font-size:13px}.demo{width:270px}.strip-item{font-size:12px;gap:5px}.strip-item .icon{width:18px;height:18px}.download-panel{padding:26px 22px}}
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.store-link{transition:none}.store-link:hover{transform:none}}
   </style>
+  <link rel="stylesheet" href="assets/vamonos/vamonos.css">
+
 </head>
 <body>
   <svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" aria-hidden="true" style="position:absolute;overflow:hidden">
@@ -50,7 +53,7 @@
     <div class="wrap header-inner">
       <a class="brand" href="/" aria-label="보는날씨 홈"><img src="assets/bonun-weather-logo.png" alt="" width="1024" height="1024"><span>보는날씨</span></a>
       <nav class="navigation" aria-label="주요 메뉴">
-        <a href="#for-you">이럴 때 써보세요</a><a href="#features">주요 기능</a><a href="/business/">광고·제휴</a><a class="nav-download" href="#download">앱 다운로드 <span aria-hidden="true">↗</span></a>
+        <a class="nav-vamonos" href="#vamonos">VAMONOS</a><a href="#for-you">이럴 때 써보세요</a><a href="#features">주요 기능</a><a href="/business/">광고·제휴</a><a class="nav-download" href="#download">앱 다운로드 <span aria-hidden="true">↗</span></a>
       </nav>
     </div>
   </header>
@@ -66,6 +69,7 @@
             <a class="store-link secondary" href="https://play.google.com/store/apps/details?id=com.yeoubi.bonunnalssi2" aria-label="보는날씨 갤럭시 · 안드로이드 앱 Google Play 다운로드"><svg class="icon" aria-hidden="true"><use href="#i-play"/></svg>갤럭시 · 안드로이드 다운로드</a>
           </div>
           <p class="hero-note">iPhone과 Android에서 만나보세요.</p>
+          <a class="vamonos-teaser" href="#vamonos"><span class="teaser-label">VAMONOS</span><span>세계의 라이브 풍경 속에서, 잠깐의 쉼</span><span aria-hidden="true">→</span></a>
           <div class="hero-bottom"><svg class="icon" aria-hidden="true"><use href="#i-pin"/></svg>날씨부터 주변 즐길 거리까지, 한곳에서</div>
         </div>
         <figure class="demo" aria-label="보는날씨 실제 사용 영상" style="margin:0">
@@ -88,6 +92,42 @@
         <span class="strip-item"><svg class="icon" aria-hidden="true"><use href="#i-chat"/></svg>현장 제보</span>
       </div>
     </div>
+    <section class="vamonos-section" id="vamonos" aria-labelledby="vamonos-title">
+      <div class="wrap">
+        <div class="vamonos-main">
+          <div class="vamonos-copy">
+            <p class="vamonos-kicker">보는날씨 안의 작은 여행</p>
+            <img class="vamonos-logo" src="assets/vamonos/vamonos-logo.png" alt="VAMONOS 바모노스" width="480" height="160" loading="lazy">
+            <h2 id="vamonos-title">세계는 지금,<br>어떤 풍경일까요?</h2>
+            <p class="vamonos-lead">도시의 거리부터 사파리, 바다와 우주까지.<br>세계의 라이브 영상을 커다란 스크린으로 만나보세요.</p>
+            <p class="vamonos-body">캐릭터로 직접 걸으며 마음에 드는 자리를 찾고,<br>잔잔한 음악과 함께 잠깐 쉬어가는 3D 공간입니다.</p>
+            <a class="vamonos-cta" href="#download">보는날씨에서 떠나보기 <span aria-hidden="true">↗</span></a>
+            <p class="vamonos-path">앱 홈에서 <strong>VAMONOS</strong>를 눌러보세요.</p>
+          </div>
+          <div class="vamonos-gallery" aria-label="VAMONOS 실제 앱 화면">
+            <figure class="vamonos-shot shot-garden">
+              <a href="assets/vamonos/safari-lounge.jpg" target="_blank" rel="noopener" aria-label="사파리 가든 실제 앱 화면 크게 보기 · 새 창"><img src="assets/vamonos/safari-lounge.jpg" width="720" height="1565" alt="사파리 가든에서 캐릭터가 좌석과 대형 라이브 스크린 앞에 서 있는 실제 앱 화면" loading="lazy" decoding="async"></a>
+              <figcaption><span>01 / SAFARI GARDEN</span>풍경 앞, 나만의 자리</figcaption>
+            </figure>
+            <figure class="vamonos-shot shot-space">
+              <a href="assets/vamonos/observatory.jpg" target="_blank" rel="noopener" aria-label="천문대 실제 앱 화면 크게 보기 · 새 창"><img src="assets/vamonos/observatory.jpg" width="720" height="1565" alt="별빛 천장과 우주 기지 라이브 영상을 대형 스크린으로 보여주는 2층 천문대 실제 앱 화면" loading="lazy" decoding="async"></a>
+              <figcaption><span>02 / OBSERVATORY</span>별빛 아래, 더 넓은 세계</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="vamonos-zones" aria-label="한 공간에서 만나는 네 가지 풍경">
+          <article><span class="zone-number">01</span><h3>도시 전망 라운지</h3><p>세계의 거리와 도심 풍경.<br>낯선 도시의 일상을 만나요.</p></article>
+          <article><span class="zone-number">02</span><h3>자연 테라스</h3><p>바다와 정원, 산의 풍경.<br>마음을 느긋하게 풀어봐요.</p></article>
+          <article><span class="zone-number">03</span><h3>사파리 가든</h3><p>사파리와 동물, 아쿠아리움.<br>다른 생명들의 시간을 바라봐요.</p></article>
+          <article><span class="zone-number">04</span><h3>별빛 천문대</h3><p>우주와 항공의 라이브 영상.<br>별빛 천장 아래 쉬어가요.</p></article>
+        </div>
+        <div class="vamonos-moments">
+          <div><h3>혼자여도, 함께여도.</h3><p>먼저 공간을 둘러보거나 친구를 초대해 같은 라운지에서 만나요.<br>모닥불에 장작을 더하고 트리를 꾸미며, 음악과 풍경을 즐겨보세요.</p></div>
+          <p class="vamonos-wish">별빛 아래 남기는 짧은 소원.<br><strong>소원은 나에게만 보여요.</strong></p>
+        </div>
+        <p class="vamonos-note">실제 앱 화면 · 이미지를 누르면 크게 볼 수 있어요. 영상은 촬영 시점의 모습이며 제공처의 송출 상태에 따라 달라집니다.<br>VAMONOS는 최신 앱 버전에서 이용할 수 있어요. 스토어별 업데이트 제공 시점은 다를 수 있습니다.</p>
+      </div>
+    </section>
     <section class="section wrap" id="for-you" aria-labelledby="audience-title">
       <p class="section-label">이런 순간에, 보는날씨</p>
       <h2 class="section-heading" id="audience-title">오늘의 계획에<br>확신이 필요한 사람들을 위해.</h2>
@@ -137,6 +177,7 @@
       <p class="section-label">사업자를 위한 광고·제휴</p>
       <h2 class="section-heading" id="business-title">방문을 준비하는 사람들에게<br>우리 공간을 알려보세요.</h2>
       <p class="section-description">날씨·실시간 영상·현장 소식을 확인하는 이용자에게 배너로 가게와 행사를 소개하고 홈페이지로 연결합니다.</p>
+      <p class="section-description">VAMONOS의 카페·F&amp;B 공간 연출, 브랜드 소품과 체험 콘텐츠 제휴도 상담합니다. 제작 범위·기간·금액은 개별 협의합니다.</p>
       <p class="section-description">현장 주문이 필요한 곳은 광고형에 QR 주문·결제 구성을 더해 상담할 수 있습니다. QR 주문·결제와 장비 연동은 별도 개발·검증이 필요한 도입 상담 항목입니다.</p>
       <div class="store-links"><a class="store-link" href="/business/">광고·제휴 상품 안내 →</a><a class="store-link secondary" href="mailto:info@yeoubi.ai.kr">금액·구성 이메일 문의</a></div>
     </section>
