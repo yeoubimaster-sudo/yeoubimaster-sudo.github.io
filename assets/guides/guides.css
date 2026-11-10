@@ -9,7 +9,7 @@ a:focus-visible,summary:focus-visible { outline:3px solid var(--blue); outline-o
 .wrap { width:min(1120px,calc(100% - 80px)); margin-inline:auto; }
 .skip { position:absolute; top:-80px; left:16px; background:white; padding:12px; z-index:20; }
 .skip:focus { top:10px; }
-.site-header { position:sticky; top:0; background:#fffffff5; border-bottom:1px solid var(--line); z-index:10; }
+.site-header { position:sticky; top:0; background:white; border-bottom:1px solid var(--line); z-index:10; }
 .header-inner { min-height:88px; display:flex; align-items:center; justify-content:space-between; gap:24px; }
 .brand { display:flex; align-items:center; font-size:22px; font-weight:800; letter-spacing:-.8px; white-space:nowrap; }
 .brand img { width:70px; height:70px; object-fit:contain; margin-left:-12px; }

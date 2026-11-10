@@ -12,7 +12,7 @@ a:focus-visible,summary:focus-visible { outline:3px solid var(--blue); outline-o
 .wrap { width:min(1180px,calc(100% - 80px)); margin-inline:auto; }
 .skip { position:absolute; z-index:20; top:-80px; left:20px; padding:12px 18px; background:white; }
 .skip:focus { top:10px; }
-.site-header { position:sticky; top:0; z-index:10; background:#fffffff5; border-bottom:1px solid var(--line); }
+.site-header { position:sticky; top:0; z-index:10; background:white; border-bottom:1px solid var(--line); }
 .header-inner { min-height:88px; display:flex; align-items:center; justify-content:space-between; gap:24px; }
 .brand { display:flex; align-items:center; font-weight:800; font-size:22px; letter-spacing:-.8px; }
 .brand img { width:70px; height:70px; object-fit:contain; margin-left:-12px; }
@@ -164,7 +164,12 @@ details p { padding-top:15px; font-size:14px; color:var(--muted); }
 .hero-film figcaption { font-size:10px; color:var(--muted); line-height:1.7; margin-top:11px; }
 .weather-notes h3 { min-height:38px; display:flex; align-items:center; gap:8px; }
 .camping-mark { width:36px; height:36px; flex:0 0 36px; object-fit:contain; margin:0; }
-.footer-brand img { width:75px; height:75px; object-fit:contain; }
+.footer-identity { display:flex; align-items:center; gap:12px; }
+.footer-brand { display:block; flex:0 0 72px; }
+.footer-brand img { width:72px; height:72px; object-fit:contain; }
+.company-details { min-width:0; }
+.company-details p { color:var(--ink); font-size:13px; font-weight:600; margin:0 0 3px; }
+.company-details a { font-size:12px; }
 @media(max-width:1000px) { .hero-film { width:275px; } }
 @media(max-width:720px) {
   .hero-layout { padding-block:32px 30px; gap:28px; }
