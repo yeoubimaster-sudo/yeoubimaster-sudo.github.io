@@ -162,7 +162,8 @@ details p { padding-top:15px; font-size:14px; color:var(--muted); }
 .film-label span:first-child { font-weight:700; color:var(--ink); }
 .hero-film iframe { display:block; width:100%; height:auto; aspect-ratio:9/16; border:0; background:#292929; border-radius:8px; }
 .hero-film figcaption { font-size:10px; color:var(--muted); line-height:1.7; margin-top:11px; }
-.camping-mark { width:58px; height:58px; object-fit:contain; margin-bottom:12px; }
+.weather-notes h3 { min-height:38px; display:flex; align-items:center; gap:8px; }
+.camping-mark { width:36px; height:36px; flex:0 0 36px; object-fit:contain; margin:0; }
 .footer-brand img { width:75px; height:75px; object-fit:contain; }
 @media(max-width:1000px) { .hero-film { width:275px; } }
 @media(max-width:720px) {
@@ -172,3 +173,7 @@ details p { padding-top:15px; font-size:14px; color:var(--muted); }
   .hero-travel strong { font-size:13px; }
   .film-label { font-size:10px; }
 }
+
+.brand { flex-shrink:0; }
+.hero-travel img { flex-shrink:0; }
+.hero-travel>span { min-width:0; }

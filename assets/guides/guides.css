@@ -114,3 +114,5 @@ tbody th { width:32%; color:var(--blue); }
   .site-footer nav { margin-top:22px; gap:13px 20px; }
 }
 @media(prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } }
+
+.brand { flex-shrink:0; }
