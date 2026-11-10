@@ -12,7 +12,7 @@ function environment(pathname, userAgent = '', maxTouchPoints = 0) {
   return {context, redirects, callbacks};
 }
 test('Android campaign links preserve the production app and encode finite page attribution without visitor query data', () => {
-  for (const [path, content] of [['/cctv/', 'cctv_hero'], ['/weather-widget/', 'widget_hero'], ['/unknown/private@example.invalid', 'website_hero']]) {
+  for (const [path, content] of [['/cctv/', 'cctv_hero'], ['/weather-widget/', 'widget_hero'], ['/iphone-weather-widget/', 'iphone_widget_hero'], ['/android-weather-widget/', 'android_widget_hero'], ['/rain-radar/', 'radar_hero'], ['/traffic-cctv/', 'traffic_hero'], ['/camping-weather/', 'camping_hero'], ['/unknown/private@example.invalid', 'website_hero']]) {
     const {context} = environment(path);
     const u = new URL(context.window.BonunStoreLinks.url('android', 'hero'));
     assert.equal(u.origin, 'https://play.google.com');

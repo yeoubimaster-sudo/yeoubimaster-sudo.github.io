@@ -1,10 +1,39 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://yeoubi.ai.kr/</loc></url>
-  <url><loc>https://yeoubi.ai.kr/download/</loc></url>
-  <url><loc>https://yeoubi.ai.kr/business/</loc></url>
-  <url><loc>https://yeoubi.ai.kr/cctv/</loc></url>
-  <url><loc>https://yeoubi.ai.kr/weather-widget/</loc></url>
-  <url><loc>https://yeoubi.ai.kr/vamonos/</loc></url>
-  <url><loc>https://yeoubi.ai.kr/guide/</loc></url>
+  <url>
+    <loc>https://yeoubi.ai.kr/</loc>
+  </url>
+  <url>
+    <loc>https://yeoubi.ai.kr/download/</loc>
+  </url>
+  <url>
+    <loc>https://yeoubi.ai.kr/business/</loc>
+  </url>
+  <url>
+    <loc>https://yeoubi.ai.kr/cctv/</loc>
+  </url>
+  <url>
+    <loc>https://yeoubi.ai.kr/traffic-cctv/</loc>
+  </url>
+  <url>
+    <loc>https://yeoubi.ai.kr/rain-radar/</loc>
+  </url>
+  <url>
+    <loc>https://yeoubi.ai.kr/camping-weather/</loc>
+  </url>
+  <url>
+    <loc>https://yeoubi.ai.kr/weather-widget/</loc>
+  </url>
+  <url>
+    <loc>https://yeoubi.ai.kr/iphone-weather-widget/</loc>
+  </url>
+  <url>
+    <loc>https://yeoubi.ai.kr/android-weather-widget/</loc>
+  </url>
+  <url>
+    <loc>https://yeoubi.ai.kr/vamonos/</loc>
+  </url>
+  <url>
+    <loc>https://yeoubi.ai.kr/guide/</loc>
+  </url>
 </urlset>

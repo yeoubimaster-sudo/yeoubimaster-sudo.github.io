@@ -2,7 +2,7 @@
   'use strict';
   var IOS = 'https://apps.apple.com/kr/app/id6762339060';
   var ANDROID = 'https://play.google.com/store/apps/details?id=com.yeoubi.bonunnalssi2';
-  var pages = {'/': 'home', '/cctv/': 'cctv', '/weather-widget/': 'widget', '/vamonos/': 'vamonos', '/guide/': 'guide', '/download/': 'download', '/business/': 'business'};
+  var pages = {'/': 'home', '/cctv/': 'cctv', '/weather-widget/': 'widget', '/vamonos/': 'vamonos', '/guide/': 'guide', '/download/': 'download', '/business/': 'business', '/iphone-weather-widget/': 'iphone_widget', '/android-weather-widget/': 'android_widget', '/rain-radar/': 'radar', '/traffic-cctv/': 'traffic', '/camping-weather/': 'camping'};
   var page = pages[window.location.pathname] || 'website';
   function url(store, placement) {
     if (store !== 'android') return IOS;
