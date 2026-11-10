@@ -1,4 +1,4 @@
-:root { --blue:#007fb9; --sky:#20b3ed; --ink:#2d3035; --muted:#676b70; --line:#e9e5db; --pale:#fffbed; }
+:root { --blue:#0076ad; --sky:#20b3ed; --ink:#2d3035; --muted:#676b70; --line:#e9e5db; --pale:#fffbed; }
 * { box-sizing:border-box; }
 html { scroll-padding-top:110px; scroll-behavior:auto; }
 body { margin:0; background:white; color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sans KR',sans-serif; line-height:1.9; word-break:keep-all; overflow-wrap:break-word; }

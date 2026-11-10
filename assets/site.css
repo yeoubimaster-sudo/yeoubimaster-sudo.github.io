@@ -1,5 +1,5 @@
 :root {
-  --ink:#2d3035; --muted:#676b70; --blue:#007fb9; --sky:#20b3ed;
+  --ink:#2d3035; --muted:#676b70; --blue:#0076ad; --sky:#20b3ed;
   --line:#e9e5db; --pale:#fffbed; --mint:#fffaf1; --paper:#fff;
 }
 * { box-sizing:border-box; }
