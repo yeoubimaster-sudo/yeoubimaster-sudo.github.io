@@ -2,8 +2,10 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>보는날씨 다운로드</title>
+<title>보는날씨 다운로드 | iPhone·갤럭시 날씨·CCTV 앱</title>
 <meta name="description" content="눈으로 확인하는 현장 날씨, 보는날씨를 다운로드하세요.">
+<link rel="canonical" href="https://yeoubi.ai.kr/download/"><meta property="og:title" content="보는날씨 다운로드"><meta property="og:description" content="날씨 예보와 실시간 CCTV, 날씨 위젯과 VAMONOS를 iPhone·갤럭시에서 만나보세요."><meta property="og:image" content="https://yeoubi.ai.kr/assets/bonun-weather-logo.png"><meta property="og:url" content="https://yeoubi.ai.kr/download/"><meta property="og:type" content="website">
+<script src="/assets/guides/store-links.js"></script>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#edf8ff;color:#153247;font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif;min-height:100svh;display:grid;place-items:center;padding:24px}main{width:100%;max-width:440px;background:white;border-radius:28px;padding:36px 28px;text-align:center;box-shadow:0 12px 50px #1532470c}img{width:200px;max-width:80%;height:auto}h1{font-size:27px;line-height:1.4;margin:16px 0}p{line-height:1.7;color:#53687b}.button{display:block;text-decoration:none;background:#079ee2;color:white;padding:18px;border-radius:14px;font-weight:700;margin:24px 0 14px}footer{margin-top:26px}footer a{color:#53687b;font-size:14px}#status{font-size:15px}a:focus-visible{outline:3px solid #ff9d00;outline-offset:4px}
 </style>
@@ -14,11 +16,11 @@
 <p id="status" role="status">보는날씨로 지금 날씨를 확인하세요.</p>
 <a class="button" id="ios-link" href="https://apps.apple.com/kr/app/id6762339060">iPhone · App Store 다운로드</a>
 <a class="button" id="android-link" href="https://play.google.com/store/apps/details?id=com.yeoubi.bonunnalssi2">갤럭시 · 안드로이드 다운로드</a>
-<footer><a href="/">보는날씨 홈페이지</a></footer>
+<footer><a href="/">보는날씨 홈페이지</a> · <a href="/guide/">이용 가이드</a></footer>
 </main><script>
 // 기존 QR 주소는 유지하고 기기에 맞는 공식 스토어로 이동합니다.
-const ANDROID_STORE_URL = 'https://play.google.com/store/apps/details?id=com.yeoubi.bonunnalssi2';
-const IOS_STORE_URL = 'https://apps.apple.com/kr/app/id6762339060';
+const ANDROID_STORE_URL = window.BonunStoreLinks ? window.BonunStoreLinks.url('android','qr_redirect') : 'https://play.google.com/store/apps/details?id=com.yeoubi.bonunnalssi2';
+const IOS_STORE_URL = window.BonunStoreLinks ? window.BonunStoreLinks.url('ios','qr_redirect') : 'https://apps.apple.com/kr/app/id6762339060';
 const ua = navigator.userAgent || '';
 const isAndroid = /Android/i.test(ua);
 const isIOS = /iPhone|iPad|iPod/i.test(ua) || (/Macintosh/i.test(ua) && navigator.maxTouchPoints > 1);
