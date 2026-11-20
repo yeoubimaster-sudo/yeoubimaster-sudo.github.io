@@ -2,6 +2,7 @@
 <html lang="ko">
 <head>
 <meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>보는날씨 광고 신청</title>
@@ -865,7 +866,7 @@
 
     if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) {
+    if (file.size <= 0 || file.size > 5 * 1024 * 1024) {
       image.value = "";
       alert("이미지는 5MB 이하여야 합니다.");
       return;
@@ -873,8 +874,10 @@
 
     const localUrl = URL.createObjectURL(file);
 
-    previewImage.innerHTML =
-      `<img src="${localUrl}" alt="광고 이미지 미리보기">`;
+    const preview = document.createElement('img');
+    preview.src = localUrl;
+    preview.alt = '광고 이미지 미리보기';
+    previewImage.replaceChildren(preview);
   });
 
   async function loadApplication() {
@@ -946,8 +949,11 @@
       contactPhone.value = data.contactPhone || "";
 
       if (currentImageUrl) {
-        previewImage.innerHTML =
-          `<img src="${currentImageUrl}" alt="광고 이미지">`;
+        const preview = document.createElement('img');
+        preview.src = currentImageUrl;
+        preview.alt = '광고 이미지';
+        preview.referrerPolicy = 'no-referrer';
+        previewImage.replaceChildren(preview);
       }
 
       refreshPreview();
@@ -1023,7 +1029,7 @@
       throw new Error("JPG, PNG, WebP 이미지만 사용할 수 있습니다.");
     }
 
-    if (file.size > 5 * 1024 * 1024) {
+    if (file.size <= 0 || file.size > 5 * 1024 * 1024) {
       throw new Error("이미지는 5MB 이하여야 합니다.");
     }
 
@@ -1040,13 +1046,19 @@
     const uploadUrl = uploadResult.data.uploadUrl;
     const objectPath = uploadResult.data.objectPath;
 
-    const response = await fetch(uploadUrl, {
-      method: "PUT",
-      headers: {
-        "Content-Type": file.type
-      },
-      body: file
-    });
+    let request;
+    if (uploadResult.data.uploadMethod === "POST") {
+      const form = new FormData();
+      for (const [key, value] of Object.entries(uploadResult.data.fields)) {
+        form.append(key, value);
+      }
+      form.append("file", file); // Storage requires the file field last.
+      request = {method: "POST", body: form};
+    } else {
+      // Compatible with the current server during the coordinated rollout.
+      request = {method: "PUT", headers: {"Content-Type": file.type}, body: file};
+    }
+    const response = await fetch(uploadUrl, request);
 
     if (!response.ok) {
       throw new Error(
