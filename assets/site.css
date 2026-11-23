@@ -2,6 +2,7 @@
   --ink:#193342; --muted:#51616d; --blue:#12688f; --sky:#2c99d6;
   --line:#dce7ed; --pale:#eaf5fb; --cloud:#f8fafc; --paper:#f8fafc;
   --accent:#eb2f33; --accent-hover:#c92329; --on-sky:#092536;
+  --sky-tint:#e4f1f8; --body-ink:#244557;
 }
 * { box-sizing:border-box; }
 html { scroll-behavior:auto; scroll-padding-top:104px; }
@@ -238,17 +239,46 @@ details p { padding-top:15px; font-size:16px; color:var(--muted); }
   .app-preview .hero-film { width:min(260px,100%); }
 }
 
-/* One palette across all eight sections: sky, white, sky, white. */
+/* Keep the brand sky in the hero; use a quiet tint behind longer reading. */
 .section-sky {
-  --ink:#092536;
-  --muted:#092536;
-  --blue:#092536;
-  --line:rgba(9,37,54,.24);
-  background:var(--sky);
+  --ink:#15364a;
+  --muted:#244557;
+  --blue:#175c80;
+  --line:#c1d9e7;
+  background:var(--sky-tint);
   color:var(--ink);
 }
-.section-sky h2 { color:white; }
-.section-sky .button { border-color:white; }
+.section-sky h2 { color:var(--ink); font-weight:800; }
+.section-sky p { font-weight:500; }
+.section-sky h3,.section-sky .eyebrow,.section-sky .text-link { font-weight:750; }
+.section-sky .button { border-color:var(--accent); }
 .section-white { background:var(--paper); color:var(--ink); }
-.section-sky .field-window { border:1px solid rgba(255,255,255,.6); border-radius:8px; }
+.section-sky .field-window { border:1px solid var(--line); border-radius:8px; }
 .section-sky .field-figure figcaption,.section-sky .source-note,.section-sky .fine { font-size:13px; }
+
+/* Readable supporting imagery and guide navigation. */
+.hero .eyebrow,.hero .lead { font-weight:650; }
+.hero .fine,.hero-travel small { font-size:14px; font-weight:550; }
+.outdoor-moment { margin-top:28px; }
+.outdoor-moment img { width:100%; aspect-ratio:2.35; object-fit:cover; border-radius:8px; }
+.outdoor-moment figcaption { display:flex; justify-content:space-between; gap:14px; margin-top:10px; color:var(--muted); font-size:13px; }
+.outdoor-moment figcaption strong { color:var(--ink); font-weight:700; }
+.guides-section .section-heading-row { align-items:center; }
+.guides-section h2 { font-weight:800; }
+.guide-directory { gap:24px; grid-template-columns:repeat(3,minmax(0,1fr)); }
+.guide-directory>div { border:1px solid #c8dce7; border-radius:10px; overflow:hidden; background:white; padding:0 24px 12px; }
+.guide-directory h3 { margin:0 -24px 8px; padding:20px 24px; background:var(--sky-tint); border-bottom:1px solid #c8dce7; font-size:18px; font-weight:800; }
+.guide-directory a { color:var(--body-ink); font-weight:550; line-height:1.6; padding-block:16px; }
+.guide-directory a:last-child { border-bottom:0; }
+.guide-directory a:hover { color:var(--blue); text-decoration:underline; text-underline-offset:4px; }
+.guide-overview-link { margin-top:20px; font-weight:750; }
+.questions h3 { font-size:22px; }
+.questions summary { font-weight:700; color:var(--ink); }
+.questions details p { color:var(--body-ink); }
+@media(max-width:720px) {
+  .guide-directory { grid-template-columns:1fr; gap:18px; }
+  .guide-directory h3 { font-size:17px; }
+  .outdoor-moment img { aspect-ratio:1.65; }
+  .outdoor-moment figcaption { display:block; }
+  .outdoor-moment figcaption span { display:block; margin-top:3px; }
+}

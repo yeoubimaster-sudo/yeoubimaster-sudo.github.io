@@ -1,4 +1,4 @@
-:root { --blue:#12688f; --sky:#2c99d6; --cloud:#f8fafc; --ink:#193342; --muted:#51616d; --line:#dce7ed; --pale:#eaf5fb; --accent:#eb2f33; --accent-hover:#c92329; }
+:root { --blue:#12688f; --sky:#2c99d6; --cloud:#f8fafc; --ink:#193342; --muted:#344f60; --line:#dce7ed; --pale:#e4f1f8; --accent:#eb2f33; --accent-hover:#c92329; }
 * { box-sizing:border-box; }
 html { scroll-padding-top:110px; scroll-behavior:auto; }
 body { margin:0; background:var(--cloud); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sans KR',sans-serif; line-height:1.9; word-break:keep-all; overflow-wrap:break-word; }
@@ -15,14 +15,14 @@ a:focus-visible,summary:focus-visible { outline:3px solid var(--blue); outline-o
 .brand img { width:70px; height:70px; object-fit:contain; margin-left:-12px; }
 .header-inner nav { display:flex; gap:28px; align-items:center; font-size:14px; font-weight:600; }
 .nav-cta { padding:9px 17px; background:var(--accent); color:white; border-radius:5px; }
-.guide-hero { background:var(--pale); padding-block:55px 48px; border-bottom:1px solid var(--line); }
+.guide-hero { background:var(--pale); padding-block:55px 48px; border-bottom:1px solid #c1d9e7; }
 .eyebrow { color:var(--blue); font-size:14px; margin-bottom:22px; }
 .eyebrow a { text-decoration:underline; text-underline-offset:4px; }
 h1 { font-size:clamp(36px,4.3vw,52px); letter-spacing:-2px; line-height:1.35; margin-bottom:25px; font-weight:750; }
 .lead { max-width:720px; color:var(--muted); font-size:17px; margin-bottom:0; }
 .article-layout { display:grid; grid-template-columns:210px minmax(0,1fr); gap:80px; padding-top:45px; padding-bottom:65px; }
 .guide-nav { position:sticky; top:115px; align-self:start; }
-.all-guides { display:none; }
+.guide-nav .all-guides { display:none; }
 .guide-nav p { font-size:12px; font-weight:700; color:var(--muted); margin-bottom:13px; }
 .guide-nav nav { display:grid; }
 .guide-nav a { display:block; padding:10px 0; border-bottom:1px solid var(--line); font-size:14px; color:var(--muted); }
@@ -132,4 +132,40 @@ tbody th { width:32%; color:var(--blue); }
   .app-example { grid-template-columns:1fr; gap:22px; }
   .app-example .screen-link { width:min(100%,280px); margin-inline:auto; }
   .service-note { padding:18px; }
+}
+
+/* A shared, readable guide system, including the introductory guide. */
+.guide-hero h1 { color:#15364a; font-weight:800; }
+.guide-hero .lead { color:#244557; font-weight:550; font-size:18px; line-height:1.85; }
+.guide-hero .eyebrow { font-weight:700; }
+.guide-hero-layout { display:grid; grid-template-columns:1.1fr .9fr; gap:54px; align-items:center; }
+.guide-landscape { margin:0; }
+.guide-landscape img { display:block; width:100%; aspect-ratio:1.5; object-fit:cover; border-radius:9px; }
+.guide-landscape figcaption { margin-top:9px; color:var(--muted); font-size:13px; }
+.guide-nav { padding:20px 16px; border:1px solid #c8dce7; border-radius:9px; background:white; }
+.guide-nav p { color:var(--ink); font-size:14px; font-weight:750; }
+.guide-nav a { padding:11px 10px; font-weight:550; border:0; border-radius:4px; }
+.guide-nav a[aria-current=page] { background:var(--pale); color:#15364a; font-weight:800; }
+.guide-nav a:hover { background:#eef6fa; }
+.contents { background:var(--pale); padding:20px 24px; border:1px solid #c8dce7; border-radius:8px; gap:10px 24px; }
+.contents a { color:#175c80; font-weight:650; font-size:14px; line-height:1.7; }
+.guide-section h2 { color:#15364a; font-weight:800; }
+.guide-section h3,summary { font-weight:750; }
+.guide-section p,.explain-list dd,.platforms ol { font-weight:450; }
+.updated { font-size:13px; }
+.guide-quick-links { display:flex; gap:10px; flex-wrap:wrap; margin-top:24px; }
+.guide-quick-links a { padding:9px 15px; border:1px solid #a9c7d9; border-radius:5px; background:var(--cloud); color:#175c80; font-size:14px; font-weight:700; }
+.guide-quick-links a:hover { background:white; text-decoration:underline; text-underline-offset:4px; }
+.download h2 { color:#15364a; font-weight:800; }
+.download p { color:#244557; font-size:16px; font-weight:500; }
+.download p.small { font-size:13px; }
+@media(max-width:850px) {
+  .guide-nav { padding:12px 16px; }
+  .guide-hero-layout { gap:30px; }
+}
+@media(max-width:650px) {
+  .guide-hero-layout { grid-template-columns:1fr; gap:24px; }
+  .guide-landscape img { aspect-ratio:1.8; }
+  .guide-hero .lead { font-size:17px; }
+  .contents { padding:16px; }
 }
