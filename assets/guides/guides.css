@@ -71,7 +71,7 @@ tbody th { width:32%; color:var(--blue); }
 .download p.small { font-size:11px; margin-top:12px; }
 .store-links { display:flex; gap:12px; flex-wrap:wrap; }
 .button { display:inline-flex; align-items:center; justify-content:center; min-height:52px; padding:12px 18px; background:var(--accent); color:white; border:1px solid var(--accent); border-radius:5px; font-size:14px; font-weight:650; }
-.button.secondary { background:var(--cloud); color:var(--accent); border-color:var(--accent); }
+.button.secondary { background:var(--cloud); color:var(--accent-hover); border-color:var(--accent); }
 .button:hover,.nav-cta:hover { background:var(--accent-hover); color:white; }
 .button.secondary:hover { background:#fff1ef; color:var(--accent-hover); }
 .site-footer { display:flex; justify-content:space-between; gap:30px; font-size:12px; color:var(--muted); padding-block:35px; }

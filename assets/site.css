@@ -37,7 +37,7 @@ h3 { font-size:19px; font-weight:700; letter-spacing:-.5px; }
 .lead { margin-top:28px; color:var(--muted); font-size:18px; line-height:1.95; }
 .store-links { display:flex; gap:12px; flex-wrap:wrap; margin-top:32px; }
 .button { display:inline-flex; align-items:center; justify-content:center; min-height:52px; padding:12px 22px; border:1px solid var(--accent); background:var(--accent); color:white; border-radius:5px; font-size:14px; font-weight:650; }
-.button.secondary { background:var(--paper); color:var(--accent); border-color:var(--accent); }
+.button.secondary { background:var(--paper); color:var(--accent-hover); border-color:var(--accent); }
 .button:hover { background:var(--accent-hover); color:white; border-color:var(--accent-hover); }
 .button.secondary:hover { background:#fff1ef; color:var(--accent-hover); }
 .fine { color:var(--muted); font-size:12px; line-height:1.85; margin-top:13px; }
@@ -66,12 +66,12 @@ h3 { font-size:19px; font-weight:700; letter-spacing:-.5px; }
 .travel-copy>p:not(.travel-lead):not(.eyebrow):not(.fine) { margin-top:19px; font-size:16px; color:var(--muted); }
 .travel-details { margin-top:35px; padding-top:12px; border-top:1px solid var(--line); }
 .travel-details>div { margin-top:18px; }
-.travel-details dt { font-size:13px; font-weight:700; margin-bottom:5px; }
-.travel-details dd { color:var(--muted); font-size:13px; }
+.travel-details dt { font-size:14px; font-weight:700; margin-bottom:5px; }
+.travel-details dd { color:var(--muted); font-size:14px; }
 .travel-photos { display:grid; grid-template-columns:1fr .82fr; gap:22px; align-items:center; }
 .travel-photos img { border-radius:6px; }
 .space-shot { margin-top:110px; }
-.travel-photos figcaption { font-size:12px; margin-top:12px; color:var(--muted); }
+.travel-photos figcaption { font-size:13px; margin-top:12px; color:var(--muted); }
 .widget-section { padding-block:100px; }
 .widget-layout { display:grid; grid-template-columns:1fr 1fr; align-items:center; gap:80px; }
 .widget-copy>p:first-child { font-size:17px; color:var(--muted); }
@@ -101,7 +101,7 @@ details p { padding-top:15px; font-size:16px; color:var(--muted); }
 .site-footer { padding-block:40px; display:flex; align-items:flex-start; justify-content:space-between; gap:30px; color:var(--muted); font-size:12px; }
 .footer-brand { color:var(--ink); font-size:20px; font-weight:800; }
 .site-footer nav { display:flex; gap:20px; flex-wrap:wrap; }
-.site-footer small { font-size:10px; }
+.site-footer small { font-size:12px; }
 @media(max-width:1000px) {
   .wrap { width:calc(100% - 56px); }
   .header-inner nav { gap:22px; }
@@ -150,7 +150,7 @@ details p { padding-top:15px; font-size:16px; color:var(--muted); }
   .travel-photos { gap:16px; }
   .space-shot { margin-top:60px; }
   .travel-details { display:grid; grid-template-columns:1fr 1fr; gap:22px; }
-  .travel-details dd { font-size:12px; }
+  .travel-details dd { font-size:14px; }
   .widget-section { padding-block:60px; }
   .widget-layout { grid-template-columns:1fr; gap:25px; }
   .widget-copy>p:first-child { font-size:15px; }
@@ -172,10 +172,10 @@ details p { padding-top:15px; font-size:16px; color:var(--muted); }
 @media(prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } }
 
 .hero-film { width:315px; max-width:100%; justify-self:center; }
-.film-label { display:flex; justify-content:space-between; gap:10px; font-size:11px; color:#6c624c; margin-bottom:12px; }
+.film-label { display:flex; justify-content:space-between; gap:10px; font-size:13px; color:#6c624c; margin-bottom:12px; }
 .film-label span:first-child { font-weight:700; color:var(--ink); }
 .hero-film iframe { display:block; width:100%; height:auto; aspect-ratio:9/16; border:0; background:#292929; border-radius:8px; }
-.hero-film figcaption { font-size:10px; color:var(--muted); line-height:1.7; margin-top:11px; }
+.hero-film figcaption { font-size:13px; color:var(--muted); line-height:1.7; margin-top:11px; }
 .weather-notes h3 { min-height:38px; display:flex; align-items:center; gap:8px; }
 .camping-mark { width:36px; height:36px; flex:0 0 36px; object-fit:contain; margin:0; }
 .footer-identity { display:flex; align-items:center; gap:12px; }
@@ -190,7 +190,7 @@ details p { padding-top:15px; font-size:16px; color:var(--muted); }
   .hero-film { width:min(315px,100%); }
   .hero-travel img { width:52px; height:52px; }
   .hero-travel strong { font-size:13px; }
-  .film-label { font-size:10px; }
+  .film-label { font-size:13px; }
 }
 
 .brand { flex-shrink:0; }
@@ -281,4 +281,38 @@ details p { padding-top:15px; font-size:16px; color:var(--muted); }
   .outdoor-moment img { aspect-ratio:1.65; }
   .outdoor-moment figcaption { display:block; }
   .outdoor-moment figcaption span { display:block; margin-top:3px; }
+}
+
+/* Balance app evidence with its explanation, and keep mobile sections reachable. */
+.header-inner .section-links { display:flex; align-items:center; gap:32px; }
+.weather-section { padding-block:85px; }
+.weather-content { display:grid; grid-template-columns:1.2fr .8fr; gap:48px; align-items:start; }
+.weather-content .weather-notes { display:block; margin-top:0; }
+.weather-content .weather-notes article+article { margin-top:22px; padding-top:22px; border-top:1px solid var(--line); }
+.weather-content .weather-notes h3 { min-height:0; }
+.weather-content .weather-notes p { margin-top:10px; }
+.weather-content .weather-notes .text-link { margin-top:12px; }
+.weather-content .field-figure figcaption { display:block; }
+.weather-content .field-figure figcaption span { display:block; }
+.source-note { font-size:13px; }
+@media(max-width:1000px) {
+  .header-inner .section-links { gap:22px; }
+  .weather-content { gap:32px; }
+}
+@media(max-width:900px) {
+  .weather-content { grid-template-columns:1fr; }
+  .weather-content .weather-notes { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:24px; }
+  .weather-content .weather-notes article+article { margin-top:0; padding-top:0; border-top:0; }
+}
+@media(max-width:720px) {
+  html { scroll-padding-top:132px; }
+  .header-inner { display:grid; grid-template-columns:1fr auto; gap:0 12px; padding-block:6px 0; }
+  .header-inner nav { display:contents; }
+  .header-inner .nav-download { grid-column:2; grid-row:1; justify-self:end; }
+  .header-inner .section-links { grid-column:1/-1; grid-row:2; justify-content:space-between; gap:12px; border-top:1px solid var(--line); padding:3px 0 5px; }
+  .header-inner .section-links a { display:inline-flex; align-items:center; min-height:44px; font-size:14px; font-weight:700; }
+  .weather-section { padding-block:60px 55px; }
+  .weather-content { gap:28px; }
+  .weather-content .weather-notes { display:block; }
+  .weather-content .weather-notes article+article { margin-top:24px; padding-top:24px; border-top:1px solid var(--line); }
 }
