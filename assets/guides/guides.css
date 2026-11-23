@@ -116,3 +116,19 @@ tbody th { width:32%; color:var(--blue); }
 @media(prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } }
 
 .brand { flex-shrink:0; }
+
+.app-example { display:grid; grid-template-columns:minmax(0,250px) minmax(0,1fr); gap:32px; align-items:center; margin:28px 0 8px; }
+.screen-link { display:block; background:#f5f8fa; border:1px solid var(--line); border-radius:20px; overflow:hidden; }
+.screen-link img { display:block; width:100%; height:auto; }
+.app-example figcaption { min-width:0; font-size:16px; }
+.app-example figcaption>strong { display:block; font-size:20px; line-height:1.6; margin-bottom:16px; }
+.app-example p,.service-note p,.quick-answer>p { font-size:16px; }
+.app-example p.capture-note,.service-note p.capture-note { font-size:13px; line-height:1.8; color:var(--muted); }
+.service-note { background:var(--pale); border-left:4px solid #efbe45; padding:20px 24px; margin-bottom:28px; }
+.service-note>strong { font-size:18px; }
+.service-note p { margin:12px 0 0; }
+@media(max-width:650px) {
+  .app-example { grid-template-columns:1fr; gap:22px; }
+  .app-example .screen-link { width:min(100%,280px); margin-inline:auto; }
+  .service-note { padding:18px; }
+}
