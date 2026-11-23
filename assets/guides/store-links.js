@@ -13,9 +13,31 @@
   var src = query.get('src');
   var clip = query.get('clip');
   var social = Object.prototype.hasOwnProperty.call(channels, src) && clips.indexOf(clip) !== -1;
-  var campaign = social ? 'bn261111_' + channels[src] + '_' + clip : 'bn261111_web_' + page;
-  var sourceName = social ? src : 'yeoubi.ai.kr';
-  var medium = social ? 'social' : 'website';
+  // Only a finite source label is passed to the stores. Never retain or forward
+  // a referring URL, search term, chat ID, user ID, cookie or browser storage.
+  // Missing referrers remain unattributed; this is not proof of an AI citation.
+  var referrals = {
+    chatgpt: ['cg', 'ai'], perplexity: ['px', 'ai'], gemini: ['gm', 'ai'],
+    copilot: ['cp', 'ai'], claude: ['cl', 'ai'],
+    google: ['gg', 'se'], bing: ['bg', 'se'], naver: ['nv', 'se']
+  };
+  var hosts = {
+    'chatgpt.com': 'chatgpt', 'chat.openai.com': 'chatgpt',
+    'perplexity.ai': 'perplexity', 'www.perplexity.ai': 'perplexity',
+    'gemini.google.com': 'gemini', 'copilot.microsoft.com': 'copilot',
+    'claude.ai': 'claude', 'www.google.com': 'google', 'www.google.co.kr': 'google',
+    'www.bing.com': 'bing', 'search.naver.com': 'naver', 'm.search.naver.com': 'naver'
+  };
+  var via = query.get('via');
+  if (!Object.prototype.hasOwnProperty.call(referrals, via)) via = null;
+  try {
+    var ref = new URL(document.referrer || '');
+    if (ref.protocol === 'https:' && Object.prototype.hasOwnProperty.call(hosts, ref.hostname)) via = hosts[ref.hostname];
+  } catch (_) { /* Empty or unavailable referrer is a normal visit. */ }
+  var referral = via && referrals[via];
+  var campaign = social ? 'bn261111_' + channels[src] + '_' + clip : referral ? 'bn261123_' + referral[1] + '_' + referral[0] + '_' + page : 'bn261111_web_' + page;
+  var sourceName = social ? src : referral ? via : 'yeoubi.ai.kr';
+  var medium = social ? 'social' : referral ? (referral[1] === 'ai' ? 'ai_referral' : 'search_referral') : 'website';
   function placementName(value) {
     return ['hero', 'bottom', 'footer', 'header', 'link', 'qr_redirect', 'download'].indexOf(value) !== -1 ? value : 'link';
   }
@@ -39,13 +61,17 @@
     document.querySelectorAll('a[href]').forEach(function (a) {
       var href = a.getAttribute('href');
       if (!href) return;
-      // Preserve only the finite public campaign pair while navigating guides.
+      // Preserve only finite public campaign labels while navigating guides.
       // Never persist a browser identifier, arbitrary query value, or fragment.
-      if (social && href.charAt(0) === '/' && href.charAt(1) !== '/') {
+      if ((social || referral) && href.charAt(0) === '/' && href.charAt(1) !== '/') {
         var internal = new URL(href, 'https://yeoubi.ai.kr');
         if (Object.prototype.hasOwnProperty.call(pages, internal.pathname)) {
-          internal.searchParams.set('src', src);
-          internal.searchParams.set('clip', clip);
+          if (social) {
+            internal.searchParams.set('src', src);
+            internal.searchParams.set('clip', clip);
+          } else {
+            internal.searchParams.set('via', via);
+          }
           a.href = internal.pathname + internal.search + internal.hash;
         }
         return;

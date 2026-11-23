@@ -4,10 +4,10 @@ import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 const source = readFileSync(new URL('../assets/guides/store-links.js', import.meta.url), 'utf8');
 const qr = readFileSync(new URL('../download/index.html', import.meta.url), 'utf8').match(/<script>\s*([\s\S]*?)<\/script>/)[1];
-function environment(pathname, userAgent = '', maxTouchPoints = 0, search = '?email=private@example.invalid&token=secret-fixture') {
+function environment(pathname, userAgent = '', maxTouchPoints = 0, search = '?email=private@example.invalid&token=secret-fixture', referrer = '') {
   const redirects = [], callbacks = [];
   const status = {};
-  const context = {URL, URLSearchParams, navigator: {userAgent, maxTouchPoints}, window: {location: {pathname, search, replace: u => redirects.push(u)}}, document: {readyState: 'loading', addEventListener: (_, cb) => callbacks.push(cb), getElementById: () => status, querySelectorAll: () => []}};
+  const context = {URL, URLSearchParams, navigator: {userAgent, maxTouchPoints}, window: {location: {pathname, search, replace: u => redirects.push(u)}}, document: {referrer, readyState: 'loading', addEventListener: (_, cb) => callbacks.push(cb), getElementById: () => status, querySelectorAll: () => []}};
   vm.createContext(context); vm.runInContext(source, context);
   return {context, redirects, callbacks};
 }
@@ -24,6 +24,57 @@ test('Android campaign links preserve the production app and encode finite page 
     assert.ok(!u.href.includes('secret-fixture'));
     assert.ok(!u.href.includes('private'));
   }
+});
+
+test('AI and search referrals pass only finite labels, never the private referring path or query', () => {
+  for (const [host, name, kind, short] of [
+    ['chatgpt.com','chatgpt','ai','cg'], ['chat.openai.com','chatgpt','ai','cg'],
+    ['www.perplexity.ai','perplexity','ai','px'], ['gemini.google.com','gemini','ai','gm'],
+    ['copilot.microsoft.com','copilot','ai','cp'], ['claude.ai','claude','ai','cl'],
+    ['www.google.com','google','se','gg'], ['www.google.co.kr','google','se','gg'],
+    ['www.bing.com','bing','se','bg'], ['search.naver.com','naver','se','nv']
+  ]) {
+    const e = environment('/android-weather-widget/','',0,'?token=secret-fixture', 'https://'+host+'/private-conversation?q=sensitive-question');
+    for (const store of ['ios','android']) {
+      const u = new URL(e.context.window.BonunStoreLinks.url(store,'bottom'));
+      const campaign = u.searchParams.get(store === 'ios' ? 'ct' : 'utm_campaign');
+      assert.equal(campaign, 'bn261123_'+kind+'_'+short+'_android_widget');
+      assert.ok(campaign.length <= 30);
+      assert.ok(!/private|sensitive|secret-fixture/.test(u.href));
+      if (store === 'android') {
+        const ref = new URLSearchParams(u.searchParams.get('referrer'));
+        assert.equal(ref.get('utm_source'),name);
+        assert.equal(ref.get('utm_medium'),kind === 'ai' ? 'ai_referral' : 'search_referral');
+      }
+    }
+  }
+});
+
+test('empty, malformed, insecure and lookalike referrers remain unattributed', () => {
+  for (const referrer of ['', 'not-a-url', 'http://chatgpt.com/', 'https://chatgpt.com.evil.invalid/', 'https://unknown.invalid/?via=chatgpt']) {
+    const e = environment('/cctv/','',0,'?via=__proto__&src=private@example.invalid',referrer);
+    assert.equal(e.context.window.BonunStoreLinks.campaign,'bn261111_web_cctv');
+  }
+});
+
+test('source label survives guide to download navigation without browser storage or arbitrary parameters', () => {
+  const e = environment('/cctv/','',0,'?token=secret-fixture','https://chatgpt.com/c/private-conversation');
+  const anchors=['/download/','/camping-weather/#section-2','/admin/','https://unrelated.example/'].map(href=>({href,dataset:{},getAttribute:k=>k==='href'?href:null,closest:()=>null}));
+  e.context.document.querySelectorAll=()=>anchors; e.callbacks[0]();
+  assert.equal(anchors[0].href,'/download/?via=chatgpt');
+  assert.equal(anchors[1].href,'/camping-weather/?via=chatgpt#section-2');
+  assert.equal(anchors[2].href,'/admin/');
+  assert.equal(anchors[3].href,'https://unrelated.example/');
+  const next=environment('/download/','Android',0,'?via=chatgpt','https://yeoubi.ai.kr/cctv/');
+  vm.runInContext(qr,next.context);
+  const ref=new URLSearchParams(new URL(next.redirects[0]).searchParams.get('referrer'));
+  assert.equal(ref.get('utm_campaign'),'bn261123_ai_cg_download');
+  assert.equal(ref.get('utm_content'),'download_qr_redirect');
+});
+
+test('existing explicit social campaigns retain precedence over referrer labels', () => {
+  const e=environment('/download/','',0,'?src=instagram&clip=03&via=chatgpt','https://www.google.com/search?q=private');
+  assert.equal(e.context.window.BonunStoreLinks.campaign,'bn261111_ig_03');
 });
 test('Apple uses the actual console-generated provider and a finite campaign on the official app', () => {
   const {context} = environment('/vamonos/');
