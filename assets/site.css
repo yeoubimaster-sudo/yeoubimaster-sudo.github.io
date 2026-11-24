@@ -316,3 +316,8 @@ details p { padding-top:15px; font-size:16px; color:var(--muted); }
   .weather-content .weather-notes { display:block; }
   .weather-content .weather-notes article+article { margin-top:24px; padding-top:24px; border-top:1px solid var(--line); }
 }
+
+.app-facts { margin-top:24px; }
+.app-facts>div { padding:12px 0; border-top:1px solid var(--line); }
+.app-facts dt { font-size:13px; font-weight:750; color:var(--blue); margin-bottom:5px; }
+.app-facts dd { font-size:14px; font-weight:500; line-height:1.7; color:var(--body-ink); }
