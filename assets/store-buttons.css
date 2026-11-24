@@ -10,10 +10,4 @@
 .store-button--ios:hover { box-shadow:0 0 0 3px #8c9aa780; }
 .store-button:focus-visible { outline:3px solid #12688f; outline-offset:5px; }
 .store-button img { pointer-events:none; }
-.site-footer { flex-wrap:wrap; }
-.brand-credits { flex-basis:100%; width:100%; margin-top:8px; color:#51616d; font-size:12px; line-height:1.7; }
-.brand-credits summary { cursor:pointer; width:fit-content; font-size:12px; font-weight:500; }
-.brand-credits p { max-width:920px; padding-top:8px; margin:0; font-size:12px; color:#51616d; }
-.brand-credits a { text-decoration:underline; text-underline-offset:3px; }
-.brand-credits summary:focus-visible { outline:3px solid #12688f; outline-offset:4px; }
 @media(prefers-reduced-motion:reduce) { .store-button { transition:none; } }
