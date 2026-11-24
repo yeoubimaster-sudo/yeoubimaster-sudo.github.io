@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>카메라 신청 관리 · 보는날씨</title>
+<link rel="stylesheet" href="./camera-admin.css"><script src="./vendor/hls-1.7.3.min.js" defer></script>
+<script type="module" src="./camera-admin.js"></script></head>
+<body><main>
+<header><div><a href="./admin.html">관리자 홈</a><p class="eyebrow">보는날씨 · 내 풍경 자랑하기</p><h1>카메라 신청 관리</h1></div>
+<button id="login">관리자 로그인</button><button id="logout" hidden>로그아웃</button></header>
+<p id="message" role="status" aria-live="polite">관리자 계정으로 로그인해 주세요.</p>
+<section id="workspace" hidden><div class="toolbar"><h2>접수·공개 상태</h2><button id="reload">새로 불러오기</button></div>
+<p id="availability"></p><p>영상의 실제 장소·제공 권한·실시간 재생·개인정보 노출을 확인한 뒤 승인하세요. 수정안이 반려돼도 기존 승인본은 공개됩니다. 공개 중지는 별도입니다.</p>
+<div class="columns"><section id="items" aria-label="신청 목록"></section><section id="detail" aria-label="신청 검토"><p>목록에서 신청을 선택해 주세요.</p></section></div>
+<button id="more" hidden>이전 신청 더 보기</button></section>
+<noscript>카메라 신청 관리에는 JavaScript가 필요합니다.</noscript>
+</main></body></html>
